@@ -1,0 +1,31 @@
+{% extends 'layout.html'%}
+
+{% block body %}
+    {% from "includes/_formhelpers.html" import render_field %}
+    <h1>SIGNUP</h1>
+    <div class="container">
+        <form method="POST" action="">
+            <div class="row">
+                <div class="col">
+                    <div class="form-outline mb-4">
+                        {{render_field(form.name, class_="form-control")}}
+                    </div>
+                    <div class="form-outline mb-4">
+                        {{render_field(form.email, class_="form-control")}}
+                    </div>
+                    <div class="form-outline mb-4">
+                        {{render_field(form.username, class_="form-control")}}
+                    </div>
+                    <div class="form-outline mb-4">
+                        {{render_field(form.password, class_="form-control")}}
+                    </div>
+                    <div class="form-outline mb-4">
+                        {{render_field(form.confirm, class_="form-control")}}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mb-4">SUBMIT</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}
