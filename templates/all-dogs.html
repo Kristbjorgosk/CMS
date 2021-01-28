@@ -1,0 +1,21 @@
+{% extends 'layout.html' %} {% block body %} {% for dog in dogs %}
+<div class="container" style="max-width: 800px; margin-top: 5rem">
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+      <div class="card h-100">
+        <img
+          src="https://mdbootstrap.com/img/new/standard/city/041.jpg"
+          class="card-img-top"
+          alt="..."
+        />
+        <div class="card-body">
+          <h5 class="card-title">{{ dog.dogName }}</h5>
+          <p class="card-text">Age: {{ dog.dogAge }}</p>
+          <p class="card-text">Home: {{ dog.home }}</p>
+          <p class="card-text">Last seen: {{ dog.lastSeen }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %} {% endblock %}

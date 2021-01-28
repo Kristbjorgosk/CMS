@@ -1,0 +1,89 @@
+{% extends 'layout.html' %} {% block body %}
+
+<div class="container" style="max-width: 600px; margin-top: 5rem">
+  <form>
+    <!-- Name input -->
+    <div class="form-outline mb-4">
+      <input
+        name="dogName"
+        type="text"
+        id="form4Example1"
+        class="form-control"
+      />
+      <label class="form-label" for="form4Example1">Dog Name</label>
+    </div>
+
+    <!-- Name input -->
+    <div class="form-outline mb-4">
+      <input name="owner" type="text" id="form4Example1" class="form-control" />
+      <label class="form-label" for="form4Example1">Owner Name</label>
+    </div>
+
+    <!-- Name input -->
+    <div class="form-outline mb-4">
+      <input
+        name="dogAge"
+        type="text"
+        id="form4Example1"
+        class="form-control"
+      />
+      <label class="form-label" for="form4Example1">Dog Age</label>
+    </div>
+
+    <!-- Email input -->
+    <div class="form-outline mb-4">
+      <input
+        name="email"
+        type="email"
+        id="form4Example2"
+        class="form-control"
+      />
+      <label class="form-label" for="form4Example2">Email address</label>
+    </div>
+
+    <!-- Name input -->
+    <div class="form-outline mb-4">
+      <input
+        name="lastSeen"
+        type="text"
+        id="form4Example1"
+        class="form-control"
+      />
+      <label class="form-label" for="form4Example1">Last seen</label>
+    </div>
+
+    <!-- upload a photo -->
+    <label class="form-label" for="customFile">Upload a photo</label>
+    <input type="file" class="form-control" id="customFile" />
+
+    <!-- Message input -->
+    <div class="form-outline mb-4">
+      <textarea
+        name="comments"
+        class="form-control"
+        id="form4Example3"
+        rows="4"
+      ></textarea>
+      <label class="form-label" for="form4Example3">Message</label>
+    </div>
+
+    <!-- Checkbox -->
+    <div class="form-check d-flex justify-content-center mb-4">
+      <input
+        class="form-check-input me-2"
+        type="checkbox"
+        value=""
+        id="form4Example4"
+        checked
+      />
+      <label class="form-check-label" for="form4Example4">
+        Send me a copy of this message
+      </label>
+    </div>
+
+    <!-- Submit button -->
+    <button type="submit" class="btn btn-primary btn-block mb-4">Send</button>
+  </form>
+</div>
+
+{% endblock %}
