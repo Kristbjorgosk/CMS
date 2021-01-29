@@ -3,6 +3,7 @@ from data import Data
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
+#from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
@@ -16,7 +17,7 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 
-
+'''
 # connecting database sqlite to the folder newbooking.db thats stores all the data that is inputed
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogs.db'
 db = SQLAlchemy(app)
@@ -32,6 +33,7 @@ class Dogs(db.Model):
     home = db.Column(db.String(200))
     lastSeen = db.Column(db.String(200))
     comments = db.Column(db.Text())
+   
 
     def __init__(self, owner, email, dogName, dogAge, home, lastseen, comments):
         self.owner = owner
@@ -41,7 +43,7 @@ class Dogs(db.Model):
         self.home = home
         self.lastSeen = lastSeen
         self.comments = comments
-
+ '''
 
 # route to mainpage
 
