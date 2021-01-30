@@ -3,7 +3,27 @@ from data import Data
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
+from logging.config import dictConfig
 
+dictConfig({
+    'version': 1,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
@@ -13,34 +33,7 @@ app.config['MYSQL_USER'] = 'b5aef45b6c5463'
 app.config['MYSQL_PASSWORD'] = '6bd17e5d'
 app.config['MYSQL_DB'] = 'heroku_5ac0bb6b985dc58'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
 mysql = MySQL(app)
-
-
-# connecting database sqlite to the folder newbooking.db thats stores all the data that is inputed
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogs.db'
-# db = SQLAlchemy(app)
-
-
-# # database model
-# class Dogs(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     owner = db.Column(db.String(200))
-#     email = db.Column(db.String(200))
-#     dogName = db.Column(db.String(200))
-#     dogAge = db.Column(db.String(200))
-#     home = db.Column(db.String(200))
-#     lastSeen = db.Column(db.String(200))
-#     comments = db.Column(db.Text())
-
-#     def __init__(self, owner, email, dogName, dogAge, home, lastseen, comments):
-#         self.owner = owner
-#         self.email = email
-#         self.dogName = dogName
-#         self.dogAge = dogAge
-#         self.home = home
-#         self.lastSeen = lastSeen
-#         self.comments = comments
 
 
 # route to mainpage
@@ -49,20 +42,57 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/login-register", methods=["GET", "POST"])
-def loginRegister():
-    return render_template("login-register.html")
+# Dogs --showing all dogs that have been added missing
+@app.route('/dogs', methods=["GET", "POST"])
+def dogs():
+    # Create cursor
+    cur = mysql.connection.cursor()
+
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs")
+
+    dogs = cur.fetchall()
+
+    return render_template('dogs.html')
+    # Close connection
+    cur.close()
 
 
-@app.route("/submit-missing", methods=["GET", "POST"])
-def submitMissing():
-    return render_template("submit-missing.html")
+# Class for missing dog form
+class AddDogFrom(Form):
+    dogName = StringField('dogName', [validators.Length(min=1, max=200)])
+    dogAge = StringField('dogAge', [validators.Length(min=1, max=200)])
+    owner = StringField('owner', [validators.Length(min=1, max=200)])
+    home = StringField('home', [validators.Length(min=1, max=200)])
+    lastSeen = StringField('lastSeen', [validators.Length(min=1, max=200)])
+    comments = StringField('comments', [validators.Length(min=1, max=1000)])
 
 
-@app.route("/all-dogs", methods=["GET", "POST"])
-def allDogs():
-    dogs = Dogs.query.all()
-    return render_template("all-dogs.html")
+# Add missing dog form --the data will go to MySql
+@app.route('/add-dog', methods=['GET', 'POST'])
+def add_dog():
+    form = AddDogFrom(request.form)
+    if request.method == 'POST' and form.validate():
+        dogName = form.dogName.data
+        dogAge = form.dogAge.data
+        owner = form.owner.data
+        home = form.home.data
+        lastSeen = form.lastSeen.data
+        comments = form.comments.data
+
+        # # Create Cursor
+        cur = mysql.connection.cursor()
+        # # Execute
+        cur.execute(
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments) VALUES(%s,%s,%s,%s,%s,%s)',
+        )
+        # # Commit to DB
+        mysql.connection.commit()
+        # # Close connection
+        cur.close()
+        flash('Missing dog added', 'success')
+        return redirect('/')
+    return render_template('add-dog.html', form=form)
 
 
 class RegisterForm(Form):
@@ -86,8 +116,9 @@ def signup():
         password = sha256_crypt.encrypt(str(form.password.data))
 
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO usr(name, email, username, password) VALUES(%s, %s, %s, %s)",
-                    (name, email, username, password))
+        cur.execute(
+            "INSERT INTO usr(name, email, username, password) VALUES(%s, %s, %s, %s)",
+            (name, email, username, password))
 
         mysql.connection.commit()
 

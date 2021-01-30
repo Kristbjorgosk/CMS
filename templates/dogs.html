@@ -1,12 +1,10 @@
-{% extends 'layout.html' %}
+<!-- Page that displays all dogs  -->
 
-{% block body %}
-
-<h1>Articles</h1>
+{% extends 'layout.html' %} {% block body %}
+<h1>Dogs that are missing</h1>
 <ul class="list-group">
   {% for dog in dogs %}
-    <li class="list-group-item"><a href="dog/{{dog.id}}">{{dog.name}}</a></li>
+  <li class="list-group-item"><a href="dog/{{dog.id}}">{{dog.dogName}}</a></li>
   {% endfor %}
 </ul>
-
 {% endblock %}
