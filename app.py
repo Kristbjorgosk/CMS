@@ -4,6 +4,7 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
+from functools import wraps
 
 dictConfig({
     'version': 1,
@@ -159,12 +160,58 @@ def login():
             password = data['password']
 
             if sha256_crypt.verify(password_candidate, password):
-                app.logger.info('Password matched')
+                session['logged_in'] = True
+                session['username'] = username
+
+                flash('You are now logged in', 'success')
+                return redirect(url_for('add_dog'))
             else:
-                app.logger.info('Password does not match')
-        
+                error = 'Password and user do not match'
+                return render_template('login.html', error=error)
+
+        else: 
+            error = 'No user found'
+            return render_template('login.html', error=error)
 
     return render_template('login.html')
+
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+
+        else:
+            flash('Please log in to access this site', 'danger')
+            return redirect(url_for('login'))
+
+    return wrap
+
+@app.route('/logout')
+@is_logged_in
+def logout():
+    session.clear()
+    flash('You are now logged out, doggy', 'success')
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@is_logged_in
+def dashboard():
+
+    cur = mysql.connection.cursor()
+
+    result = cur.execute("SELECT * FROM dogs")
+
+    dogs = cur.fetchall()
+
+    if result > 0: 
+        return render_template('dashboard.html', dogs=dogs)
+
+    else:
+        msg = 'Not dogs found :('
+        return render_template('dashboard.html', msg=msg)
+
+    cur.close()
 
 if __name__ == "__main__":
     app.run(debug=True)
