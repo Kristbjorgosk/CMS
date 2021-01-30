@@ -1,10 +1,14 @@
 <!-- Page that displays all dogs  -->
 
 {% extends 'layout.html' %} {% block body %}
-<h1>Dogs that are missing</h1>
-<ul class="list-group">
-  {% for dog in dogs %}
-  <li class="list-group-item"><a href="dog/{{dog.id}}">{{dog.dogName}}</a></li>
-  {% endfor %}
-</ul>
+<div class="container" style="max-width: 600px; margin-top: 5rem">
+  <h1>Dogs that are missing</h1>
+  <ul class="list-group">
+    {% for dog in dogs %}
+    <li class="list-group-item">
+      <a href="dog/{{dog.id}}">{{dog.dogName}}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
 {% endblock %}

@@ -47,25 +47,30 @@ def home():
 def dogs():
     # Create cursor
     cur = mysql.connection.cursor()
-
     # Get dogs
     result = cur.execute("SELECT * FROM dogs")
-
     dogs = cur.fetchall()
-
-    return render_template('dogs.html')
+    if result > 0:
+        return render_template("dogs.html", dogs=dogs)
+    else:
+        msg = "There are no dog missing"
+        return render_template("dogs.html", msg=msg)
     # Close connection
     cur.close()
 
 
 # Class for missing dog form
 class AddDogFrom(Form):
-    dogName = StringField('dogName', [validators.Length(min=1, max=200)])
-    dogAge = StringField('dogAge', [validators.Length(min=1, max=200)])
-    owner = StringField('owner', [validators.Length(min=1, max=200)])
-    home = StringField('home', [validators.Length(min=1, max=200)])
-    lastSeen = StringField('lastSeen', [validators.Length(min=1, max=200)])
-    comments = StringField('comments', [validators.Length(min=1, max=1000)])
+    dogName = StringField('The dog Name', [validators.Length(min=1, max=200)])
+    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
+    owner = StringField('Name of the owner',
+                        [validators.Length(min=1, max=200)])
+    home = StringField('Streetname of the dogs home',
+                       [validators.Length(min=1, max=200)])
+    lastSeen = StringField('Where was he last seen',
+                           [validators.Length(min=1, max=200)])
+    comments = StringField('Any additional comments?',
+                           [validators.Length(min=1, max=1000)])
 
 
 # Add missing dog form --the data will go to MySql
@@ -79,20 +84,30 @@ def add_dog():
         home = form.home.data
         lastSeen = form.lastSeen.data
         comments = form.comments.data
-
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
             'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments) VALUES(%s,%s,%s,%s,%s,%s)',
-        )
+            (dogName, dogAge, owner, home, lastSeen, comments))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
         cur.close()
-        flash('Missing dog added', 'success')
-        return redirect('/')
+        flash('Missing dog added')
+        redirect(url_for('add_dog'))
     return render_template('add-dog.html', form=form)
+
+
+# To display one dog
+@app.route("/dog/<string:id>/")
+def dog(id):
+    # # Create Cursor
+    cur = mysql.connection.cursor()
+    # Get one dog
+    results = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
+    dog = cur.fetchone()
+    return render_template("dog.html", dog=dog)
 
 
 class RegisterForm(Form):

@@ -1,27 +1,17 @@
 <!-- Page that show 1 dog  -->
 
 {% extends 'layout.html' %} {% block body %}
-<div class="container">
+<div class="container" style="max-width: 600px; margin-top: 5rem">
   <!-- showing one dog that the user has just added -->
-  <h1>{{dog.dogName}}</h1>
+  <h1>dog name {{dog.dogName}}</h1>
   <ul>
     <li>Last seen at: {{dog.lastSeen}}</li>
     <li>His home area: {{dog.home}}</li>
-    <li>Age: {{dog.age}}</li>
+    <li>Age: {{dog.dogAge}}</li>
   </ul>
 
   <hr />
-  <div>{{dog.comments | safe}}</div>
-
-  <a href="/all-dogs">
-    <button
-      style="margin: 0 auto; display: flex; margin-top: 2rem"
-      type="button"
-      class="btn btn-danger btn-rounded"
-    >
-      See all dogs
-    </button>
-  </a>
+  <div>comments {{dog.comments}}</div>
 </div>
 
 {% endblock %}
