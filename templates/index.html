@@ -1,65 +1,30 @@
+<!-- Page that displays all dogs  -->
+
 {% extends 'layout.html' %} {% block body %}
 <div class="container" style="max-width: 800px; margin-top: 5rem">
   <div class="jumbotron text-center">
     <h3 style="margin-bottom: 2rem">Dogs that are currently lost</h3>
 
     <div class="row row-cols-1 row-cols-md-3 g-4">
+      {% for dog in dogs %}
       <div class="col">
         <div class="card h-100">
-          <img
-            src="https://mdbootstrap.com/img/new/standard/city/041.jpg"
-            class="card-img-top"
-            alt="..."
-          />
           <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">
-              This is a longer card with supporting text below as a natural
-              lead-in to additional content. This content is a little bit
-              longer.
-            </p>
+            <a href="dog/{{dog.id}}">
+              <h5 class="card-title">{{dog.dogName}}</h5></a
+            >
+            <p class="card-text">Last seen at {{dog.lastSeen}}</p>
           </div>
         </div>
       </div>
-      <div class="col">
-        <div class="card h-100">
-          <img
-            src="https://mdbootstrap.com/img/new/standard/city/042.jpg"
-            class="card-img-top"
-            alt="..."
-          />
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">This is a short card.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card h-100">
-          <img
-            src="https://mdbootstrap.com/img/new/standard/city/043.jpg"
-            class="card-img-top"
-            alt="..."
-          />
-          <div class="card-body">
-            <h5 class="card-title">Card title</h5>
-            <p class="card-text">
-              This is a longer card with supporting text below as a natural
-              lead-in to additional content.
-            </p>
-          </div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
+    {% if session.logged_in == NULL %}
+    <p class="lead" style="margin-top: 2rem">
+      Has your un away from home? Sign up or log in to report him as missing
+    </p>
+
+    {% endif %}
   </div>
-  <a href="/all-dogs">
-    <button
-      style="margin: 0 auto; display: flex; margin-top: 2rem"
-      type="button"
-      class="btn btn-danger btn-rounded"
-    >
-      See all dogs
-    </button>
-  </a>
 </div>
 {% endblock %}

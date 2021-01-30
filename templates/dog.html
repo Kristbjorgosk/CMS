@@ -2,16 +2,18 @@
 
 {% extends 'layout.html' %} {% block body %}
 <div class="container" style="max-width: 600px; margin-top: 5rem">
-  <!-- showing one dog that the user has just added -->
-  <h1>dog name {{dog.dogName}}</h1>
-  <ul>
-    <li>Last seen at: {{dog.lastSeen}}</li>
-    <li>His home area: {{dog.home}}</li>
-    <li>Age: {{dog.dogAge}}</li>
-  </ul>
+  <div class="jumbotron text-left">
+    <!-- showing one dog that the user has just added -->
+    <h1>Dog name {{dog.dogName}}</h1>
+    <ul>
+      <li>Last seen at: {{dog.lastSeen}}</li>
+      <li>His home area: {{dog.home}}</li>
+      <li>Age: {{dog.dogAge}}</li>
+    </ul>
 
-  <hr />
-  <div>comments {{dog.comments}}</div>
+    <hr />
+    <div>Additional information: {{dog.comments}}</div>
+  </div>
 </div>
 
 {% endblock %}

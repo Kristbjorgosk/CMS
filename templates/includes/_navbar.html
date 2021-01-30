@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Lost dogs</title>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">Lost dogs</a>
+        <!-- <a class="navbar-brand" href="/dogs">All dogs</a> -->
         <button
           class="navbar-toggler"
           type="button"
@@ -16,7 +16,8 @@
           data-mdb-target="#navbarSupportedContent"
           aria-controls="navbarSupportedContent"
           aria-expanded="false"
-          aria-label="Toggle navigation">
+          aria-label="Toggle navigation"
+        >
           <i class="fas fa-bars"></i>
         </button>
 
@@ -24,56 +25,57 @@
           <!-- Left links -->
           <ul class="list-unstyled navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/">Home</a>
+              <a class="nav-link" href="/">Lost dogs</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/dogs">All dogs</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/add-dog">Add a missing dog</a>
           </ul>
-
 
           {% if session.logged_in %}
 
-              <a href="/logout">
-              <button
+          <a href="/logout">
+            <button
+              class="btn btn-outline-dark"
+              type="button"
+              data-mdb-ripple-color="dark"
+            >
+              LOG OUT
+            </button></a
+          >
+
+          <a href="/dashboard"
+            ><button
+              class="btn btn-outline-warning"
+              type="button"
+              data-mdb-ripple-color="dark"
+            >
+              DASHBOARD
+            </button></a
+          >
+
+          {% else %}
+
+          <a href="/signup"
+            ><button
               class="btn btn-outline-primary"
               type="button"
-              data-mdb-ripple-color="dark">
-                LOG OUT
-              </button></a>
+              data-mdb-ripple-color="dark"
+            >
+              SIGN UP
+            </button></a
+          >
 
-
-              <a href="/dashboard"><button
+          <a href="/login"
+            ><button
               class="btn btn-outline-primary"
               type="button"
-              data-mdb-ripple-color="dark">
-                DASHBOARD
-              </button></a>
-
-        {% else %}
-
-          <a href="/signup"><button
-          class="btn btn-outline-primary"
-          type="button"
-          data-mdb-ripple-color="dark"
+              data-mdb-ripple-color="dark"
+            >
+              LOG IN
+            </button></a
           >
-          SIGN UP
-        </button></a>
 
-        <a href="/login"><button
-          class="btn btn-outline-primary"
-          type="button"
-          data-mdb-ripple-color="dark"
-          >
-          LOG IN
-        </button></a>
-
-
-        {% endif %}
+          {% endif %}
         </div>
-        
+
         <!-- Collapsible wrapper -->
       </div>
       <!-- Container wrapper -->

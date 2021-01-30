@@ -37,10 +37,21 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 
-# route to mainpage
+# route to mainpage / show all dogs
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs")
+    dogs = cur.fetchall()
+    if result > 0:
+        return render_template("index.html", dogs=dogs)
+    else:
+        msg = "There are no dog missing"
+        return render_template("index.html", msg=msg)
+    # Close connection
+    cur.close()
 
 
 # Dogs --showing all dogs that have been added missing
@@ -58,46 +69,6 @@ def dogs():
         return render_template("dogs.html", msg=msg)
     # Close connection
     cur.close()
-
-
-# Class for missing dog form
-class AddDogFrom(Form):
-    dogName = StringField('The dog Name', [validators.Length(min=1, max=200)])
-    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
-    owner = StringField('Name of the owner',
-                        [validators.Length(min=1, max=200)])
-    home = StringField('Streetname of the dogs home',
-                       [validators.Length(min=1, max=200)])
-    lastSeen = StringField('Where was he last seen',
-                           [validators.Length(min=1, max=200)])
-    comments = StringField('Any additional comments?',
-                           [validators.Length(min=1, max=1000)])
-
-
-# Add missing dog form --the data will go to MySql
-@app.route('/add-dog', methods=['GET', 'POST'])
-def add_dog():
-    form = AddDogFrom(request.form)
-    if request.method == 'POST' and form.validate():
-        dogName = form.dogName.data
-        dogAge = form.dogAge.data
-        owner = form.owner.data
-        home = form.home.data
-        lastSeen = form.lastSeen.data
-        comments = form.comments.data
-        # # Create Cursor
-        cur = mysql.connection.cursor()
-        # # Execute
-        cur.execute(
-            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments) VALUES(%s,%s,%s,%s,%s,%s)',
-            (dogName, dogAge, owner, home, lastSeen, comments))
-        # # Commit to DB
-        mysql.connection.commit()
-        # # Close connection
-        cur.close()
-        flash('Missing dog added')
-        redirect(url_for('add_dog'))
-    return render_template('add-dog.html', form=form)
 
 
 # To display one dog
@@ -145,6 +116,7 @@ def signup():
         redirect(url_for('signup'))
     return render_template('signup.html', form=form)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -153,7 +125,8 @@ def login():
 
         cur = mysql.connection.cursor()
 
-        result = cur.execute("SELECT * FROM usr WHERE username = %s", [username])
+        result = cur.execute("SELECT * FROM usr WHERE username = %s",
+                             [username])
 
         if result > 0:
             data = cur.fetchone()
@@ -169,11 +142,12 @@ def login():
                 error = 'Password and user do not match'
                 return render_template('login.html', error=error)
 
-        else: 
+        else:
             error = 'No user found'
             return render_template('login.html', error=error)
 
     return render_template('login.html')
+
 
 def is_logged_in(f):
     @wraps(f)
@@ -187,12 +161,14 @@ def is_logged_in(f):
 
     return wrap
 
+
 @app.route('/logout')
 @is_logged_in
 def logout():
     session.clear()
     flash('You are now logged out, doggy', 'success')
     return redirect(url_for('login'))
+
 
 @app.route('/dashboard')
 @is_logged_in
@@ -204,7 +180,7 @@ def dashboard():
 
     dogs = cur.fetchall()
 
-    if result > 0: 
+    if result > 0:
         return render_template('dashboard.html', dogs=dogs)
 
     else:
@@ -212,6 +188,105 @@ def dashboard():
         return render_template('dashboard.html', msg=msg)
 
     cur.close()
+
+
+# Class for missing dog form
+class AddDogFrom(Form):
+    dogName = StringField('The dog Name', [validators.Length(min=1, max=200)])
+    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
+    owner = StringField('Name of the owner',
+                        [validators.Length(min=1, max=200)])
+    home = StringField('Streetname of the dogs home',
+                       [validators.Length(min=1, max=200)])
+    lastSeen = StringField('Where was he last seen',
+                           [validators.Length(min=1, max=200)])
+    comments = StringField('Any additional comments?',
+                           [validators.Length(min=1, max=1000)])
+
+
+# Add missing dog form --the data will go to MySql
+@app.route('/add-dog', methods=['GET', 'POST'])
+@is_logged_in
+def add_dog():
+    form = AddDogFrom(request.form)
+    if request.method == 'POST' and form.validate():
+        dogName = form.dogName.data
+        dogAge = form.dogAge.data
+        owner = form.owner.data
+        home = form.home.data
+        lastSeen = form.lastSeen.data
+        comments = form.comments.data
+        # # Create Cursor
+        cur = mysql.connection.cursor()
+        # # Execute
+        cur.execute(
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments) VALUES(%s,%s,%s,%s,%s,%s)',
+            (dogName, dogAge, owner, home, lastSeen, comments))
+        # # Commit to DB
+        mysql.connection.commit()
+        # # Close connection
+        cur.close()
+        flash('Missing dog added', "success")
+        return redirect(url_for('dashboard'))
+    return render_template('add-dog.html', form=form)
+
+
+# Edit missing dog form
+@app.route('/edit-dog/<string:id>', methods=['GET', 'POST'])
+@is_logged_in
+def edit_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dog by id
+    result = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
+    dog = cur.fetchone()
+    # Get form
+    form = AddDogFrom(request.form)
+    # Populate dog form fields
+    form.dogName.data = dog['dogName']
+    form.dogAge.data = dog['dogAge']
+    form.owner.data = dog['owner']
+    form.home.data = dog['home']
+    form.lastSeen.data = dog['lastSeen']
+    form.comments.data = dog['comments']
+
+    if request.method == 'POST' and form.validate():
+        dogName = request.form['dogName']
+        dogAge = request.form['dogAge']
+        owner = request.form['owner']
+        home = request.form['home']
+        lastSeen = request.form['lastSeen']
+        comments = request.form['comments']
+        # # Create Cursor
+        cur = mysql.connection.cursor()
+        # # Execute
+        cur.execute(
+            "UPDATE dogs SET dogName=%s, dogAge=%s, owner=%s, home=%s, lastSeen=%s, comments=%s WHERE id = %s",
+            (dogName, dogAge, owner, home, lastSeen, comments, id))
+        # # Commit to DB
+        mysql.connection.commit()
+        # # Close connection
+        cur.close()
+        flash('Information has been updated', "success")
+        return redirect(url_for('dashboard'))
+    return render_template('edit-dog.html', form=form)
+
+
+# Delete missing dog
+@app.route("/delete-dog/<string:id>", methods=["POST"])
+@is_logged_in
+def delete_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Execute
+    cur.execute("DELETE FROM dogs WHERE id = %s", [id])
+    # commit to DB
+    mysql.connection.commit()
+    # Close connection
+    cur.close()
+    flash('Dog has been deleted', "success")
+    return redirect(url_for('dashboard'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
