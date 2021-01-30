@@ -144,6 +144,27 @@ def signup():
         redirect(url_for('signup'))
     return render_template('signup.html', form=form)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password_candidate = request.form['password']
+
+        cur = mysql.connection.cursor()
+
+        result = cur.execute("SELECT * FROM usr WHERE username = %s", [username])
+
+        if result > 0:
+            data = cur.fetchone()
+            password = data['password']
+
+            if sha256_crypt.verify(password_candidate, password):
+                app.logger.info('Password matched')
+            else:
+                app.logger.info('Password does not match')
+        
+
+    return render_template('login.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
