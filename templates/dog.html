@@ -4,15 +4,15 @@
 <div class="container" style="max-width: 600px; margin-top: 5rem">
   <div class="jumbotron text-left">
     <!-- showing one dog that the user has just added -->
-    <h1>Dog name {{dog.dogName}}</h1>
+    <h1>{{dog.dogName}}</h1>
     <ul>
-      <li>Last seen at: {{dog.lastSeen}}</li>
-      <li>His home area: {{dog.home}}</li>
-      <li>Age: {{dog.dogAge}}</li>
+      <li><strong>Place where it was last seen:</strong> {{dog.lastSeen}}</li>
+      <li><strong>Address of its home:</strong> {{dog.home}}</li>
+      <li><strong>Age:</strong> {{dog.dogAge}}</li>
     </ul>
 
     <hr />
-    <div>Additional information: {{dog.comments}}</div>
+    <div><strong>Additional information:</strong> {{dog.comments}}</div>
   </div>
 </div>
 

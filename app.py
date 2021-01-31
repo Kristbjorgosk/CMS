@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request
-from data import Data
+from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
+
 
 dictConfig({
     'version': 1,
@@ -36,7 +36,6 @@ app.config['MYSQL_DB'] = 'heroku_5ac0bb6b985dc58'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
-
 # route to mainpage / show all dogs
 @app.route("/")
 def home():
@@ -53,6 +52,18 @@ def home():
     # Close connection
     cur.close()
 
+
+# Json for all dogs 
+@app.route("/json")
+def json_all():
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs")
+    dogs = cur.fetchall()
+    return jsonify(dogs)
+    # Close connection
+    cur.close()
 
 # Dogs --showing all dogs that have been added missing
 @app.route('/dogs', methods=["GET", "POST"])
@@ -111,9 +122,9 @@ def signup():
 
         cur.close()
 
-        flash('Signup succesful!')
+        flash('Signup succesful!', "success")
 
-        redirect(url_for('signup'))
+        return redirect(url_for('login'))
     return render_template('signup.html', form=form)
 
 
@@ -121,7 +132,7 @@ def signup():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        password_candidate = request.form['password']
+        password_submitted = request.form['password']
 
         cur = mysql.connection.cursor()
 
@@ -132,7 +143,7 @@ def login():
             data = cur.fetchone()
             password = data['password']
 
-            if sha256_crypt.verify(password_candidate, password):
+            if sha256_crypt.verify(password_submitted, password):
                 session['logged_in'] = True
                 session['username'] = username
 
@@ -192,16 +203,16 @@ def dashboard():
 
 # Class for missing dog form
 class AddDogFrom(Form):
-    dogName = StringField('The dog Name', [validators.Length(min=1, max=200)])
+    dogName = StringField('The dogs name', [validators.Length(min=1, max=200)])
     dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
     owner = StringField('Name of the owner',
                         [validators.Length(min=1, max=200)])
     home = StringField('Streetname of the dogs home',
                        [validators.Length(min=1, max=200)])
-    lastSeen = StringField('Where was he last seen',
+    lastSeen = StringField('Place it was last seen',
                            [validators.Length(min=1, max=200)])
     comments = StringField('Any additional comments?',
-                           [validators.Length(min=1, max=1000)])
+                           [validators.Length(min=0, max=1000)])
 
 
 # Add missing dog form --the data will go to MySql
@@ -289,4 +300,4 @@ def delete_dog(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
