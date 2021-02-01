@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, SelectField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
@@ -213,6 +213,7 @@ class AddDogFrom(Form):
                            [validators.Length(min=1, max=200)])
     comments = StringField('Any additional comments?',
                            [validators.Length(min=0, max=1000)])
+    area = SelectField(u'area', choices=[('101 Reykjavík', '101 Reykjavík'), ('102 Reykjavík', '102 Reykjavík'), ('103 Reykjavík', '103 Reykjavík'), ('104 Reykjavík', '104 Reykjavík'), ('105 Reykjavík', '105 Reykjavík'), ('107 Reykjavík', '107 Reykjavík'), ('108 Reykjavík', '108 Reykjavík'), ('109 Reykjavík', '109 Reykjavík'), ('110 Reykjavík', '110 Reykjavík'), ('111 Reykjavík', '111 Reykjavík'), ('112 Reykjavík', '112 Reykjavík'), ('113 Reykjavík', '113 Reykjavík'), ('116 Reykjavík', '116 Reykjavík'), ('170 Seltjarnarnes', '170 Seltjarnarnes'), ('200 Kópavogur', '200 Kópavogur'), ('201 Kópavogur', '201 Kópavogur'), ('203 Kópavogur', '203 Kópavogur'), ('206 Kópavogur', '206 Kópavogur'), ('210 Garðabær ', '210 Garðabær'), ('220 Hafnarfjörður', '220 Hafnarfjörður'), ('221 Hafnarfjörður', '221 Hafnarfjörður')])
 
 
 # Add missing dog form --the data will go to MySql
@@ -227,12 +228,13 @@ def add_dog():
         home = form.home.data
         lastSeen = form.lastSeen.data
         comments = form.comments.data
+        area = form.area.data
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
-            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments) VALUES(%s,%s,%s,%s,%s,%s)',
-            (dogName, dogAge, owner, home, lastSeen, comments))
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area) VALUES(%s,%s,%s,%s,%s,%s,%s)',
+            (dogName, dogAge, owner, home, lastSeen, comments, area))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
