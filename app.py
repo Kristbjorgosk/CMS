@@ -6,6 +6,9 @@ from logging.config import dictConfig
 from functools import wraps
 import uuid
 
+app = Flask(__name__)
+app.secret_key = 'leyndo123456'
+
 dictConfig({
     'version': 1,
     'formatters': {
@@ -26,8 +29,7 @@ dictConfig({
     }
 })
 
-app = Flask(__name__)
-app.secret_key = 'leyndo123456'
+# ------------- connection to the database------------- #
 
 app.config['MYSQL_HOST'] = 'us-cdbr-east-03.cleardb.com'
 app.config['MYSQL_USER'] = 'b5aef45b6c5463'
@@ -36,8 +38,10 @@ app.config['MYSQL_DB'] = 'heroku_5ac0bb6b985dc58'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
+# ------------- Decorators functions ------------- #
 
-# check the api key and if it is in the database
+
+# Check the api key and if it is in the database
 def api_key_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -63,7 +67,195 @@ def api_key_required(f):
     return decorated
 
 
-# route to mainpage / show all dogs
+# Decorator for when logged in
+def is_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+
+        else:
+            flash('Please log in to access this site', 'danger')
+            return redirect(url_for('login'))
+
+    return wrap
+
+
+# The next 4 decorators, GET ALL, ADD, EDIT and DELETE a.k.a (CRUD) are passed in the API and interface routes below in the code
+
+
+# Decorator to GET ALL dogs from the database
+def get_all_dogs(user):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    app.logger.info(user)
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs WHERE owner =  %s", [user["id"]])
+    dogs = cur.fetchall()
+    # Close connection
+    cur.close()
+    return dogs
+
+
+# Decorator to GET ONE dog from the database
+def get_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    app.logger.info(id)
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    one_dog = cur.fetchone()
+    # Close connection
+    cur.close()
+    return one_dog
+
+
+# Decorator to ADD dog from the database
+def add_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    app.logger.info(id)
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    add_dog = cur.fetchone()
+    # Close connection
+    cur.close()
+    return add_dog
+
+
+# Decorator to EDIT one dog from the database
+def edit_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    app.logger.info(id)
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    edit_dog = cur.fetchone()
+    # Close connection
+    cur.close()
+    return edit_dog
+
+
+# Decoration to DELETE one dog from the database
+def delete_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    app.logger.info(id)
+    # Get dogs
+    result = cur.execute("DELETE * FROM dogs WHERE id =  %s", [id])
+    delete_dog = cur.fetchone()
+    # Close connection
+    cur.close()
+    return delete_dog
+
+
+# ------------- Form classes that connects to yhe database ------------- #
+
+
+# Class for missing dog form
+class AddDogFrom(Form):
+    dogName = StringField('The dogs name', [validators.Length(min=1, max=200)])
+    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
+    owner = StringField('Name of the owner',
+                        [validators.Length(min=1, max=200)])
+    home = StringField('Streetname of the dogs home',
+                       [validators.Length(min=1, max=200)])
+    lastSeen = StringField('Place it was last seen',
+                           [validators.Length(min=1, max=200)])
+    comments = StringField('Any additional comments?',
+                           [validators.Length(min=0, max=1000)])
+    area = SelectField(u'area',
+                       choices=[('101 Reykjavík', '101 Reykjavík'),
+                                ('102 Reykjavík', '102 Reykjavík'),
+                                ('103 Reykjavík', '103 Reykjavík'),
+                                ('104 Reykjavík', '104 Reykjavík'),
+                                ('105 Reykjavík', '105 Reykjavík'),
+                                ('107 Reykjavík', '107 Reykjavík'),
+                                ('108 Reykjavík', '108 Reykjavík'),
+                                ('109 Reykjavík', '109 Reykjavík'),
+                                ('110 Reykjavík', '110 Reykjavík'),
+                                ('111 Reykjavík', '111 Reykjavík'),
+                                ('112 Reykjavík', '112 Reykjavík'),
+                                ('113 Reykjavík', '113 Reykjavík'),
+                                ('116 Reykjavík', '116 Reykjavík'),
+                                ('170 Seltjarnarnes', '170 Seltjarnarnes'),
+                                ('200 Kópavogur', '200 Kópavogur'),
+                                ('201 Kópavogur', '201 Kópavogur'),
+                                ('203 Kópavogur', '203 Kópavogur'),
+                                ('206 Kópavogur', '206 Kópavogur'),
+                                ('210 Garðabær ', '210 Garðabær'),
+                                ('220 Hafnarfjörður', '220 Hafnarfjörður'),
+                                ('221 Hafnarfjörður', '221 Hafnarfjörður')])
+
+
+class RegisterForm(Form):
+    name = StringField('Name', [validators.Length(min=1, max=50)])
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    email = StringField('Email', [validators.Length(min=6, max=50)])
+    password = PasswordField('Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords do not match')
+    ])
+    confirm = PasswordField('Confirm Password')
+
+
+# ------------- API routes CRUD ------------- #
+
+
+# API for ALL dogs
+@app.route("/api/all", methods=["GET", "POST"])
+@api_key_required
+def json_all(user):
+    app.logger.info(user)
+    # dogs is coming from the decorator
+    dogs = api_get_all_dogs(user)
+    return jsonify(dogs)
+
+
+# API to GET ONE dog
+@app.route("/api/dog/<string:id>/", methods=["GET"])
+@api_key_required
+def json_one_dog(id):
+    app.logger.info(id)
+    # one_dog is coming from the decorator
+    one_dog = api_get_one_dog(id)
+    return jsonify(one_dog)
+
+
+# API to EDIT ONE dog
+@app.route("/api/dog/edit/<string:id>/", methods=["POST"])
+@api_key_required
+def json_add_dog(id):
+    app.logger.info(id)
+    # one_dog is coming from the decorator
+    add_dog = api_add_one_dog(id)
+    return jsonify(add_dog)
+
+
+# API to get EDIT one dog
+@app.route("/api/dog/edit/<string:id>/", methods=["PUT"])
+@api_key_required
+def json_edit_dog(id):
+    app.logger.info(id)
+    # edit_dog is coming from the decorator
+    edit_dog = api_edit_one_dog(id)
+    return jsonify(edit_dog)
+
+
+# API to get DELETE one dog
+@app.route("/api/dog/delete/<string:id>/", methods=["DELETE"])
+@api_key_required
+def json_delete_dog(id):
+    app.logger.info(id)
+    # delete_dog is coming from the decorator
+    delete_dog = api_delete_one_dog(id)
+    return jsonify(delete_dog)
+
+
+# ------------- Routes for the interface ------------- #
+
+
+# Route to mainpage / show all dogs
 @app.route("/")
 def home():
     # Create cursor
@@ -78,27 +270,6 @@ def home():
         return render_template("index.html", msg=msg)
     # Close connection
     cur.close()
-
-
-def get_all_dogs(user):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    app.logger.info(user)
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs WHERE owner =  %s", [user["id"]])
-    dogs = cur.fetchall()
-    # Close connection
-    cur.close()
-    return dogs
-
-
-# Json for all dogs
-@app.route("/api/all", methods=["GET", "POST"])
-@api_key_required
-def json_all(user):
-    app.logger.info(user)
-    dogs = get_all_dogs(user)
-    return jsonify(dogs)
 
 
 # Dogs --showing all dogs that have been added missing
@@ -121,130 +292,6 @@ def dog(id):
     results = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
     dog = cur.fetchone()
     return render_template("dog.html", dog=dog)
-
-
-class RegisterForm(Form):
-    name = StringField('Name', [validators.Length(min=1, max=50)])
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email', [validators.Length(min=6, max=50)])
-    password = PasswordField('Password', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message='Passwords do not match')
-    ])
-    confirm = PasswordField('Confirm Password')
-
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    form = RegisterForm(request.form)
-    if request.method == 'POST' and form.validate():
-        name = form.name.data
-        email = form.email.data
-        username = form.username.data
-        password = sha256_crypt.encrypt(str(form.password.data))
-        api_key = uuid.uuid1()
-
-        cur = mysql.connection.cursor()
-        cur.execute(
-            "INSERT INTO usr(name, email, username, password, api_key) VALUES(%s, %s, %s, %s, %s)",
-            (name, email, username, password, api_key))
-
-        mysql.connection.commit()
-
-        cur.close()
-
-        flash('Signup succesful!', "success")
-
-        return redirect(url_for('login'))
-    return render_template('signup.html', form=form)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password_submitted = request.form['password']
-
-        cur = mysql.connection.cursor()
-
-        result = cur.execute("SELECT * FROM usr WHERE username = %s",
-                             [username])
-
-        if result > 0:
-            data = cur.fetchone()
-            password = data['password']
-
-            if sha256_crypt.verify(password_submitted, password):
-                session['logged_in'] = True
-                session['username'] = username
-
-                flash('You are now logged in', 'success')
-                return redirect(url_for('add_dog'))
-            else:
-                error = 'Password and user do not match'
-                return render_template('login.html', error=error)
-
-        else:
-            error = 'No user found'
-            return render_template('login.html', error=error)
-
-    return render_template('login.html')
-
-
-def is_logged_in(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-
-        else:
-            flash('Please log in to access this site', 'danger')
-            return redirect(url_for('login'))
-
-    return wrap
-
-
-@app.route('/logout')
-@is_logged_in
-def logout():
-    session.clear()
-    flash('You are now logged out, doggy', 'success')
-    return redirect(url_for('login'))
-
-
-@app.route('/dashboard')
-@is_logged_in
-def dashboard():
-
-    cur = mysql.connection.cursor()
-
-    result = cur.execute("SELECT * FROM dogs")
-
-    dogs = cur.fetchall()
-
-    if result > 0:
-        return render_template('dashboard.html', dogs=dogs)
-
-    else:
-        msg = 'Not dogs found :('
-        return render_template('dashboard.html', msg=msg)
-
-    cur.close()
-
-
-# Class for missing dog form
-class AddDogFrom(Form):
-    dogName = StringField('The dogs name', [validators.Length(min=1, max=200)])
-    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
-    owner = StringField('Name of the owner',
-                        [validators.Length(min=1, max=200)])
-    home = StringField('Streetname of the dogs home',
-                       [validators.Length(min=1, max=200)])
-    lastSeen = StringField('Place it was last seen',
-                           [validators.Length(min=1, max=200)])
-    comments = StringField('Any additional comments?',
-                           [validators.Length(min=0, max=1000)])
-    area = SelectField(u'area', choices=[('101 Reykjavík', '101 Reykjavík'), ('102 Reykjavík', '102 Reykjavík'), ('103 Reykjavík', '103 Reykjavík'), ('104 Reykjavík', '104 Reykjavík'), ('105 Reykjavík', '105 Reykjavík'), ('107 Reykjavík', '107 Reykjavík'), ('108 Reykjavík', '108 Reykjavík'), ('109 Reykjavík', '109 Reykjavík'), ('110 Reykjavík', '110 Reykjavík'), ('111 Reykjavík', '111 Reykjavík'), ('112 Reykjavík', '112 Reykjavík'), ('113 Reykjavík', '113 Reykjavík'), ('116 Reykjavík', '116 Reykjavík'), ('170 Seltjarnarnes', '170 Seltjarnarnes'), ('200 Kópavogur', '200 Kópavogur'), ('201 Kópavogur', '201 Kópavogur'), ('203 Kópavogur', '203 Kópavogur'), ('206 Kópavogur', '206 Kópavogur'), ('210 Garðabær ', '210 Garðabær'), ('220 Hafnarfjörður', '220 Hafnarfjörður'), ('221 Hafnarfjörður', '221 Hafnarfjörður')])
 
 
 # Add missing dog form --the data will go to MySql
@@ -330,6 +377,90 @@ def delete_dog(id):
     cur.close()
     flash('Dog has been deleted', "success")
     return redirect(url_for('dashboard'))
+
+
+# Rendering the dashboard template
+@app.route('/dashboard')
+@is_logged_in
+def dashboard():
+
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM dogs")
+    dogs = cur.fetchall()
+
+    if result > 0:
+        return render_template('dashboard.html', dogs=dogs)
+
+    else:
+        msg = 'Not dogs found :('
+        return render_template('dashboard.html', msg=msg)
+
+    cur.close()
+
+
+# signup form
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = RegisterForm(request.form)
+    if request.method == 'POST' and form.validate():
+        name = form.name.data
+        email = form.email.data
+        username = form.username.data
+        password = sha256_crypt.encrypt(str(form.password.data))
+        api_key = uuid.uuid1()
+
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "INSERT INTO usr(name, email, username, password, api_key) VALUES(%s, %s, %s, %s, %s)",
+            (name, email, username, password, api_key))
+
+        mysql.connection.commit()
+        cur.close()
+        flash('Signup succesful!', "success")
+
+        return redirect(url_for('login'))
+    return render_template('signup.html', form=form)
+
+
+# login form
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password_submitted = request.form['password']
+
+        cur = mysql.connection.cursor()
+        result = cur.execute("SELECT * FROM usr WHERE username = %s",
+                             [username])
+
+        if result > 0:
+            data = cur.fetchone()
+            password = data['password']
+
+            if sha256_crypt.verify(password_submitted, password):
+                session['logged_in'] = True
+                session['username'] = username
+
+                flash('You are now logged in', 'success')
+                return redirect(url_for('add_dog'))
+            else:
+                error = 'Password and user do not match'
+                return render_template('login.html', error=error)
+
+        else:
+            error = 'No user found'
+            return render_template('login.html', error=error)
+
+    return render_template('login.html')
+
+
+# log out
+@app.route('/logout')
+@is_logged_in
+def logout():
+    session.clear()
+    flash('You are now logged out, doggy', 'success')
+    return redirect(url_for('login'))
 
 
 if __name__ == "__main__":
