@@ -4,7 +4,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
-
+import uuid
 
 dictConfig({
     'version': 1,
@@ -36,6 +36,33 @@ app.config['MYSQL_DB'] = 'heroku_5ac0bb6b985dc58'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
+
+# check the api key and if it is in the database
+def api_key_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+
+        app.logger.info(request.form)
+        if "api_key" not in request.form:
+            return jsonify({'message': 'Api key is missing!'}), 403
+
+        api_key = request.form['api_key']
+
+        # # Create Cursor
+        cur = mysql.connection.cursor()
+        # Check if there is a user with the api key from usr table
+        results = cur.execute('SELECT * FROM usr WHERE api_key = %s',
+                              [api_key])
+
+        if results > 0:
+            usr = cur.fetchone()
+            return f(user=usr, *args, **kwargs)
+        else:
+            return jsonify({"message": "Api key does not exist"}), 403
+
+    return decorated
+
+
 # route to mainpage / show all dogs
 @app.route("/")
 def home():
@@ -53,33 +80,36 @@ def home():
     cur.close()
 
 
-# Json for all dogs 
-@app.route("/json")
-def json_all():
+def get_all_dogs(user):
     # Create cursor
     cur = mysql.connection.cursor()
+    app.logger.info(user)
     # Get dogs
-    result = cur.execute("SELECT * FROM dogs")
+    result = cur.execute("SELECT * FROM dogs WHERE owner =  %s", [user["id"]])
     dogs = cur.fetchall()
-    return jsonify(dogs)
     # Close connection
     cur.close()
+    return dogs
+
+
+# Json for all dogs
+@app.route("/api/all", methods=["GET", "POST"])
+@api_key_required
+def json_all(user):
+    app.logger.info(user)
+    dogs = get_all_dogs(user)
+    return jsonify(dogs)
+
 
 # Dogs --showing all dogs that have been added missing
 @app.route('/dogs', methods=["GET", "POST"])
 def dogs():
-    # Create cursor
-    cur = mysql.connection.cursor()
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs")
-    dogs = cur.fetchall()
+    dogs = get_all_dogs()
     if result > 0:
         return render_template("dogs.html", dogs=dogs)
     else:
         msg = "There are no dog missing"
         return render_template("dogs.html", msg=msg)
-    # Close connection
-    cur.close()
 
 
 # To display one dog
@@ -112,11 +142,12 @@ def signup():
         email = form.email.data
         username = form.username.data
         password = sha256_crypt.encrypt(str(form.password.data))
+        api_key = uuid.uuid1()
 
         cur = mysql.connection.cursor()
         cur.execute(
-            "INSERT INTO usr(name, email, username, password) VALUES(%s, %s, %s, %s)",
-            (name, email, username, password))
+            "INSERT INTO usr(name, email, username, password, api_key) VALUES(%s, %s, %s, %s, %s)",
+            (name, email, username, password, api_key))
 
         mysql.connection.commit()
 
