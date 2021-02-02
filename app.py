@@ -116,7 +116,9 @@ def add_one_dog(id):
     cur = mysql.connection.cursor()
     app.logger.info(id)
     # Get dogs
-    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    result = cur.execute(
+        'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area) VALUES(%s,%s,%s,%s,%s,%s,%s)',
+        (dogName, dogAge, owner, home, lastSeen, comments, area))
     add_dog = cur.fetchone()
     # Close connection
     cur.close()
@@ -222,8 +224,8 @@ def json_one_dog(id):
     return jsonify(one_dog)
 
 
-# API to EDIT ONE dog
-@app.route("/api/dog/edit/<string:id>/", methods=["POST"])
+# API to ADD ONE dog
+@app.route("/api/dog/add/<string:id>/", methods=["POST"])
 @api_key_required
 def json_add_dog(id):
     app.logger.info(id)
