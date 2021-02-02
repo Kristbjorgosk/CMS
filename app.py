@@ -60,7 +60,7 @@ def api_key_required(f):
 
         if results > 0:
             usr = cur.fetchone()
-            return f(user=usr, *args, **kwargs)
+            return f(*args, **kwargs)
         else:
             return jsonify({"message": "Api key does not exist"}), 403
 
@@ -85,12 +85,12 @@ def is_logged_in(f):
 
 
 # Decorator to GET ALL dogs from the database
-def get_all_dogs(user):
+def get_all_dogs():
     # Create cursor
     cur = mysql.connection.cursor()
-    app.logger.info(user)
+    # app.logger.info()
     # Get dogs
-    result = cur.execute("SELECT * FROM dogs WHERE owner =  %s", [user["id"]])
+    result = cur.execute("SELECT * FROM dogs")
     dogs = cur.fetchall()
     # Close connection
     cur.close()
@@ -126,12 +126,15 @@ def add_one_dog(id):
 
 
 # Decorator to EDIT one dog from the database
-def edit_one_dog(id):
+def edit_one_dog(id, form):
     # Create cursor
     cur = mysql.connection.cursor()
     app.logger.info(id)
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    # Update dogs
+    if "dogName" in form:
+        update_sql = cur.execute("UPDATE dogs SET dogName = %s WHERE id =  %s",
+                                 [form["dogName"], id])
+    select_results = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
     edit_dog = cur.fetchone()
     # Close connection
     cur.close()
@@ -207,10 +210,10 @@ class RegisterForm(Form):
 # API for ALL dogs
 @app.route("/api/all", methods=["GET", "POST"])
 @api_key_required
-def json_all(user):
-    app.logger.info(user)
-    # dogs is coming from the decorator
-    dogs = api_get_all_dogs(user)
+def json_all():
+    # app.logger.info()
+    # dogs is coming from the function
+    dogs = get_all_dogs()
     return jsonify(dogs)
 
 
@@ -219,8 +222,8 @@ def json_all(user):
 @api_key_required
 def json_one_dog(id):
     app.logger.info(id)
-    # one_dog is coming from the decorator
-    one_dog = api_get_one_dog(id)
+    # one_dog is coming from the function
+    one_dog = get_one_dog(id)
     return jsonify(one_dog)
 
 
@@ -229,8 +232,8 @@ def json_one_dog(id):
 @api_key_required
 def json_add_dog(id):
     app.logger.info(id)
-    # one_dog is coming from the decorator
-    add_dog = api_add_one_dog(id)
+    # one_dog is coming from the function
+    add_dog = add_one_dog(id)
     return jsonify(add_dog)
 
 
@@ -238,9 +241,9 @@ def json_add_dog(id):
 @app.route("/api/dog/edit/<string:id>/", methods=["PUT"])
 @api_key_required
 def json_edit_dog(id):
-    app.logger.info(id)
-    # edit_dog is coming from the decorator
-    edit_dog = api_edit_one_dog(id)
+    # app.logger.info(request.form[""])
+    # edit_dog is coming from the function
+    edit_dog = edit_one_dog(id, request.form)
     return jsonify(edit_dog)
 
 
@@ -250,7 +253,7 @@ def json_edit_dog(id):
 def json_delete_dog(id):
     app.logger.info(id)
     # delete_dog is coming from the decorator
-    delete_dog = api_delete_one_dog(id)
+    delete_dog = delete_one_dog(id)
     return jsonify(delete_dog)
 
 
@@ -442,6 +445,7 @@ def login():
             if sha256_crypt.verify(password_submitted, password):
                 session['logged_in'] = True
                 session['username'] = username
+                session['api_key'] = data["api_key"]
 
                 flash('You are now logged in', 'success')
                 return redirect(url_for('add_dog'))

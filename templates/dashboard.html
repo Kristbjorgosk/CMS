@@ -1,6 +1,7 @@
 {% extends 'layout.html' %} {% block body%}
 <div class="container" style="max-width: 1000px; margin-top: 5rem">
   <h2>Dashboard - <small>User {{session.username}}</small></h2>
+  <small>User {{session.api_key}}</small>
   <a class="btn btn-warning" href="/add-dog">ADD YOUR MISSING DOG</a>
   <hr />
   <table class="table table-striped">
@@ -9,7 +10,7 @@
       <th>NAME</th>
       <th>LAST SEEN</th>
       <th>STREET</th>
-      <th>AREA</th>      
+      <th>AREA</th>
       <th>AGE</th>
       <th>OWNER</th>
       <th>COMMENTS</th>
