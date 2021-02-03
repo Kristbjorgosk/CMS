@@ -1,18 +1,19 @@
 {% extends 'layout.html' %} {% block body%}
 <div class="container" style="max-width: 1000px; margin-top: 5rem">
-  <h2>Dashboard - <small>User {{session.username}}</small></h2>
-  <small>User {{session.api_key}}</small>
+  <h2><small>Welcome to your dashboard {{session.username}}</small></h2>
+
   <a class="btn btn-warning" href="/add-dog">ADD YOUR MISSING DOG</a>
+  <a class="btn btn" href="/api-docs">USE OUR API</a>
   <hr />
   <table class="table table-striped">
     <tr>
-      <th>ID</th>
+      <th>id</th>
       <th>NAME</th>
       <th>LAST SEEN</th>
       <th>STREET</th>
       <th>AREA</th>
+      <th>owner</th>
       <th>AGE</th>
-      <th>OWNER</th>
       <th>COMMENTS</th>
       <th></th>
       <th></th>
@@ -20,12 +21,14 @@
     {% for dogs in dogs %}
     <tr>
       <td>{{dogs.id}}</td>
-      <td>{{dogs.dogName}}</td>
+      <td>
+        <a href="dog/{{dogs.id}}">{{dogs.dogName}}</a>
+      </td>
       <td>{{dogs.lastSeen}}</td>
       <td>{{dogs.home}}</td>
+      <td>{{dogs.owner}}</td>
       <td>{{dogs.area}}</td>
       <td>{{dogs.dogAge}}</td>
-      <td>{{dogs.owner}}</td>
       <td>{{dogs.comments}}</td>
       <td>
         <a href="edit-dog/{{dogs.id}}" class="btn btn-default pull-right"

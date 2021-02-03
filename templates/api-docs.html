@@ -1,0 +1,38 @@
+<!-- Page that show 1 dog  -->
+
+{% extends 'layout.html' %} {% block body %}
+<div class="container" style="max-width: 600px; margin-top: 5rem">
+  <div class="jumbotron text-left">
+    <div class="container">
+      Here is your API key:<strong> {{session.api_key}} </strong>
+    </div>
+    <h1>How to use our API</h1>
+    <p>API endpoints</p>
+    <ul>
+      <li><strong> To display all the dogs </strong>-> /api/all</li>
+      <li>
+        <strong>
+          To display one spesific dog pass in his id number instead of "id" </strong
+        >m-> /api/dog/"id"/
+      </li>
+      <li>
+        <strong> To add a new missing dog </strong> -> /api/add/dog/ and fill
+        out all the variables
+      </li>
+      <li>
+        <strong>
+          To edit a dog info that has already been added pass in his id number
+          instead of "id"
+        </strong>
+        -> /api/dog/edit/"id"/ and change the value for the variable you want to
+        edit
+      </li>
+      <li>
+        <strong> To delete a dog pass in his id number instead of "id" </strong
+        >-> /api/dog/delete/"id"
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

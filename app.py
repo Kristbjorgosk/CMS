@@ -370,12 +370,13 @@ def add_dog():
 # Edit missing dog form
 @app.route('/edit-dog/<string:id>', methods=['GET', 'POST'])
 @is_logged_in
-def edit_dog(id):
+def edit_doggy(id):
     # Create cursor
     cur = mysql.connection.cursor()
     # Get dog by id
     result = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
     dog = cur.fetchone()
+    app.logger.info(dog)
     # Get form
     form = AddDogFrom(request.form)
     # Populate dog form fields
@@ -441,6 +442,13 @@ def dashboard():
         return render_template('dashboard.html', msg=msg)
 
     cur.close()
+
+
+# Rendering the dashboard template
+@app.route('/api-docs')
+@is_logged_in
+def api_docs():
+    return render_template('api-docs.html')
 
 
 # signup form
