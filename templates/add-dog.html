@@ -22,10 +22,10 @@
     <div class="mb-4">
       {{ render_field(form.comments, class_="form-control", id="editor") }}
     </div>
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-      <label for="upload">Image</label>
-      <input type="file" name="upload">
-    </form>
+    <form action="http://localhost:5000/add-dog" enctype="multipart/form-data" method="POST"> 
+      <input type="file" name="file" />
+      
+   </form>
     <p>
       <input
         class="btn btn-warning btn-block mb-4"

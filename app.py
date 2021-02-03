@@ -1,4 +1,6 @@
 import os
+from form import AddDogForm
+from form import RegisterForm
 from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, FileField, SelectField, TextAreaField, PasswordField, validators
@@ -86,58 +88,13 @@ def is_logged_in(f):
     return wrap
 
 
-# ------------- Form classes that connects to yhe database ------------- #
-
-
-# Class for missing dog form
-class AddDogForm(Form):
-    dogName = StringField('The dogs name', [validators.Length(min=1, max=200)])
-    dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
-    owner = StringField('Name of the owner',
-                        [validators.Length(min=1, max=200)])
-    home = StringField('Streetname of the dogs home',
-                       [validators.Length(min=1, max=200)])
-    lastSeen = StringField('Place it was last seen',
-                           [validators.Length(min=1, max=200)])
-    comments = StringField('Any additional comments?',
-                           [validators.Length(min=0, max=1000)])
-    area = SelectField(u'area',
-                       choices=[('101 Reykjavík', '101 Reykjavík'),
-                                ('102 Reykjavík', '102 Reykjavík'),
-                                ('103 Reykjavík', '103 Reykjavík'),
-                                ('104 Reykjavík', '104 Reykjavík'),
-                                ('105 Reykjavík', '105 Reykjavík'),
-                                ('107 Reykjavík', '107 Reykjavík'),
-                                ('108 Reykjavík', '108 Reykjavík'),
-                                ('109 Reykjavík', '109 Reykjavík'),
-                                ('110 Reykjavík', '110 Reykjavík'),
-                                ('111 Reykjavík', '111 Reykjavík'),
-                                ('112 Reykjavík', '112 Reykjavík'),
-                                ('113 Reykjavík', '113 Reykjavík'),
-                                ('116 Reykjavík', '116 Reykjavík'),
-                                ('170 Seltjarnarnes', '170 Seltjarnarnes'),
-                                ('200 Kópavogur', '200 Kópavogur'),
-                                ('201 Kópavogur', '201 Kópavogur'),
-                                ('203 Kópavogur', '203 Kópavogur'),
-                                ('206 Kópavogur', '206 Kópavogur'),
-                                ('210 Garðabær ', '210 Garðabær'),
-                                ('220 Hafnarfjörður', '220 Hafnarfjörður'),
-                                ('221 Hafnarfjörður', '221 Hafnarfjörður')])
-    image = StringField('add image', [validators.Length(min=0, max=10000)])
-
-
-class RegisterForm(Form):
-    name = StringField('Name', [validators.Length(min=1, max=50)])
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email', [validators.Length(min=6, max=50)])
-    password = PasswordField('Password', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message='Passwords do not match')
-    ])
-    confirm = PasswordField('Confirm Password')
-
-
 # ------------- Functions ------------- #
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # The next 4 functions, GET ALL, ADD, EDIT and DELETE a.k.a (CRUD) are passed in the API and interface routes below in the code
 
@@ -357,12 +314,15 @@ def add_dog():
         comments = form.comments.data
         area = form.area.data
         image = form.image.data
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
-            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area) VALUES(%s,%s,%s,%s,%s,%s,%s)',
-            (dogName, dogAge, owner, home, lastSeen, comments, area))
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area, image) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)',
+            (dogName, dogAge, owner, home, lastSeen, comments, area, image))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
