@@ -4,7 +4,7 @@
 <div class="container" style="max-width: 600px; margin-top: 5rem">
   <h1>ADD MISSING DOG</h1>
   {% from "includes/_formhelpers.html" import render_field %}
-  <form method="POST" action="">
+  <form method="POST" enctype="multipart/form-data">
     <div class="mb-4">
       {{ render_field(form.dogName, class_="form-control") }}
     </div>
@@ -22,6 +22,10 @@
     <div class="mb-4">
       {{ render_field(form.comments, class_="form-control", id="editor") }}
     </div>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+      <label for="upload">Image</label>
+      <input type="file" name="upload">
+    </form>
     <p>
       <input
         class="btn btn-warning btn-block mb-4"
