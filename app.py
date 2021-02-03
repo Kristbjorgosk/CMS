@@ -1,15 +1,28 @@
+<<<<<<< Updated upstream
 from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify, make_response
+=======
+import os
+from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
+>>>>>>> Stashed changes
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, SelectField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, FileField, SelectField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
 import uuid
+<<<<<<< Updated upstream
 import jwt
 import datetime
+=======
+from werkzeug.utils import secure_filename
+
+UPLOADED_IMAGES_DEST = 'uploads/images'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+>>>>>>> Stashed changes
 
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
+
 
 dictConfig({
     'version': 1,
@@ -98,8 +111,8 @@ class AddDogFrom(Form):
                            [validators.Length(min=1, max=200)])
     comments = StringField('Any additional comments?',
                            [validators.Length(min=0, max=1000)])
-    area = SelectField(u'area',
-                       choices=[('101 Reykjavík', '101 Reykjavík'),
+    area = SelectField(u'area', choices=
+                                [('101 Reykjavík', '101 Reykjavík'),
                                 ('102 Reykjavík', '102 Reykjavík'),
                                 ('103 Reykjavík', '103 Reykjavík'),
                                 ('104 Reykjavík', '104 Reykjavík'),
@@ -120,6 +133,7 @@ class AddDogFrom(Form):
                                 ('210 Garðabær ', '210 Garðabær'),
                                 ('220 Hafnarfjörður', '220 Hafnarfjörður'),
                                 ('221 Hafnarfjörður', '221 Hafnarfjörður')])
+
 
 
 class RegisterForm(Form):
@@ -352,6 +366,7 @@ def add_dog():
         lastSeen = form.lastSeen.data
         comments = form.comments.data
         area = form.area.data
+        image = form.image.data
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute

@@ -2,6 +2,9 @@
 <div class="container" style="max-width: 1000px; margin-top: 5rem">
   <h2><small>Welcome to your dashboard {{session.username}}</small></h2>
 
+  <h1 class="text-center">DASHBOARD</h1>
+  <h3 class="text-center"><small>{{session.username}}</small></h3>
+  <p><strong>API KEY:</strong> {{session.api_key}}</p>
   <a class="btn btn-warning" href="/add-dog">ADD YOUR MISSING DOG</a>
   <a class="btn btn" href="/api-docs">USE OUR API</a>
   <hr />

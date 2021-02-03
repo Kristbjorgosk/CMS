@@ -1,0 +1,15 @@
+body {
+    background-color: rgba(0, 0, 0, 0.897);
+  }
+  
+  p.lead {
+    color: azure
+  }
+  
+  div div h3 {
+    color: azure;
+  }
+  
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light {
+    background-color: whitesmoke;
+  }
