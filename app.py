@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
+from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify, make_response
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, SelectField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
 import uuid
+import jwt
+import datetime
 
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
@@ -81,79 +83,6 @@ def is_logged_in(f):
     return wrap
 
 
-# The next 4 decorators, GET ALL, ADD, EDIT and DELETE a.k.a (CRUD) are passed in the API and interface routes below in the code
-
-
-# Decorator to GET ALL dogs from the database
-def get_all_dogs():
-    # Create cursor
-    cur = mysql.connection.cursor()
-    # app.logger.info()
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs")
-    dogs = cur.fetchall()
-    # Close connection
-    cur.close()
-    return dogs
-
-
-# Decorator to GET ONE dog from the database
-def get_one_dog(id):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    app.logger.info(id)
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
-    one_dog = cur.fetchone()
-    # Close connection
-    cur.close()
-    return one_dog
-
-
-# Decorator to ADD dog from the database
-def add_one_dog(id):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    app.logger.info(id)
-    # Get dogs
-    result = cur.execute(
-        'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area) VALUES(%s,%s,%s,%s,%s,%s,%s)',
-        (dogName, dogAge, owner, home, lastSeen, comments, area))
-    add_dog = cur.fetchone()
-    # Close connection
-    cur.close()
-    return add_dog
-
-
-# Decorator to EDIT one dog from the database
-def edit_one_dog(id, form):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    app.logger.info(id)
-    # Update dogs
-    if "dogName" in form:
-        update_sql = cur.execute("UPDATE dogs SET dogName = %s WHERE id =  %s",
-                                 [form["dogName"], id])
-    select_results = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
-    edit_dog = cur.fetchone()
-    # Close connection
-    cur.close()
-    return edit_dog
-
-
-# Decoration to DELETE one dog from the database
-def delete_one_dog(id):
-    # Create cursor
-    cur = mysql.connection.cursor()
-    app.logger.info(id)
-    # Get dogs
-    result = cur.execute("DELETE * FROM dogs WHERE id =  %s", [id])
-    delete_dog = cur.fetchone()
-    # Close connection
-    cur.close()
-    return delete_dog
-
-
 # ------------- Form classes that connects to yhe database ------------- #
 
 
@@ -204,6 +133,122 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password')
 
 
+# ------------- Functions ------------- #
+
+# The next 4 functions, GET ALL, ADD, EDIT and DELETE a.k.a (CRUD) are passed in the API and interface routes below in the code
+
+
+# Function to GET ALL dogs from the database
+def get_all_dogs():
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs")
+    dogs = cur.fetchall()
+    # Close connection
+    cur.close()
+    return dogs
+
+
+# Function to GET ONE dog from the database
+def get_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dogs
+    result = cur.execute("SELECT * FROM dogs WHERE id =  %s", [id])
+    one_dog = cur.fetchone()
+    # Close connection
+    cur.close()
+    return one_dog
+
+
+# Function to ADD dog from the database
+def add_one_dog():
+    form = AddDogFrom(request.form)
+    app.logger.info(form.validate())
+    app.logger.info(request.method)
+    if not form.validate():
+        app.logger.info(form.errors.items)
+        return False
+    if request.method == 'POST' and form.validate():
+        dogName = form.dogName.data
+        dogAge = form.dogAge.data
+        owner = form.owner.data
+        home = form.home.data
+        lastSeen = form.lastSeen.data
+        comments = form.comments.data
+        area = form.area.data
+        # Create cursor
+        cur = mysql.connection.cursor()
+
+        # Get dogs
+        cur.execute(
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area) VALUES(%s,%s,%s,%s,%s,%s,%s)',
+            (dogName, dogAge, owner, home, lastSeen, comments, area))
+
+        cur.execute("SELECT * FROM dogs ORDER BY id DESC LIMIT 0, 1")
+        add_dog = cur.fetchone()
+        # Commit to DB
+        mysql.connection.commit()
+        # Close connection
+        cur.close()
+        return add_dog
+
+
+# Function to EDIT one dog from the database
+def edit_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dog by id
+    result = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
+    edit_dog = cur.fetchone()
+    app.logger.info(edit_dog)
+    # Get form from class above in the code
+    form = AddDogFrom(request.form)
+    # Populate dog form fields
+    form.dogName.data = dog['dogName']
+    form.dogAge.data = dog['dogAge']
+    form.owner.data = dog['owner']
+    form.home.data = dog['home']
+    form.lastSeen.data = dog['lastSeen']
+    form.comments.data = dog['comments']
+
+    if request.method == 'POST' and form.validate():
+        dogName = request.form['dogName']
+        dogAge = request.form['dogAge']
+        owner = request.form['owner']
+        home = request.form['home']
+        lastSeen = request.form['lastSeen']
+        comments = request.form['comments']
+        # # Create Cursor
+        cur = mysql.connection.cursor()
+        # # Execute
+        cur.execute(
+            "UPDATE dogs SET dogName=%s, dogAge=%s, owner=%s, home=%s, lastSeen=%s, comments=%s WHERE id = %s",
+            (dogName, dogAge, owner, home, lastSeen, comments, id))
+
+        # # Commit to DB
+        mysql.connection.commit()
+        # # Close connection
+        cur.close()
+
+    return edit_dog()
+
+
+# Function to DELETE one dog from the database
+def delete_one_dog(id):
+    # Create cursor
+    cur = mysql.connection.cursor()
+    # Get dogs
+    result = cur.execute("DELETE FROM dogs WHERE id =  %s", [id])
+    delete_dog = cur.fetchone()
+    # commit to DB
+    mysql.connection.commit()
+    # Close connection
+    cur.close()
+    return delete_dog
+
+
 # ------------- API routes CRUD ------------- #
 
 
@@ -211,7 +256,6 @@ class RegisterForm(Form):
 @app.route("/api/all", methods=["GET", "POST"])
 @api_key_required
 def json_all():
-    # app.logger.info()
     # dogs is coming from the function
     dogs = get_all_dogs()
     return jsonify(dogs)
@@ -221,29 +265,29 @@ def json_all():
 @app.route("/api/dog/<string:id>/", methods=["GET"])
 @api_key_required
 def json_one_dog(id):
-    app.logger.info(id)
     # one_dog is coming from the function
     one_dog = get_one_dog(id)
     return jsonify(one_dog)
 
 
 # API to ADD ONE dog
-@app.route("/api/dog/add/<string:id>/", methods=["POST"])
+@app.route("/api/dog/add/", methods=["POST"])
 @api_key_required
-def json_add_dog(id):
-    app.logger.info(id)
+def json_add_dog():
     # one_dog is coming from the function
-    add_dog = add_one_dog(id)
-    return jsonify(add_dog)
+    added_dog = add_one_dog()
+    if not added_dog:
+        return "error", 500
+    msg = "Dog has been added"
+    return jsonify(added_dog, msg)
 
 
 # API to get EDIT one dog
-@app.route("/api/dog/edit/<string:id>/", methods=["PUT"])
+@app.route("/api/dog/edit/<string:id>/", methods=["PUT", "POST"])
 @api_key_required
 def json_edit_dog(id):
-    # app.logger.info(request.form[""])
     # edit_dog is coming from the function
-    edit_dog = edit_one_dog(id, request.form)
+    edit_dog = edit_one_dog(id)
     return jsonify(edit_dog)
 
 
@@ -251,10 +295,11 @@ def json_edit_dog(id):
 @app.route("/api/dog/delete/<string:id>/", methods=["DELETE"])
 @api_key_required
 def json_delete_dog(id):
-    app.logger.info(id)
     # delete_dog is coming from the decorator
     delete_dog = delete_one_dog(id)
-    return jsonify(delete_dog)
+    # Message that will show if it was success
+    msg = "Dog has been deleted"
+    return jsonify(delete_dog, msg)
 
 
 # ------------- Routes for the interface ------------- #
@@ -263,12 +308,9 @@ def json_delete_dog(id):
 # Route to mainpage / show all dogs
 @app.route("/")
 def home():
-    # Create cursor
-    cur = mysql.connection.cursor()
-    # Get dogs
-    result = cur.execute("SELECT * FROM dogs")
-    dogs = cur.fetchall()
-    if result > 0:
+    # get_all_dog is a function further up in the code
+    dogs = get_all_dogs()
+    if not dogs:
         return render_template("index.html", dogs=dogs)
     else:
         msg = "There are no dog missing"
@@ -280,8 +322,9 @@ def home():
 # Dogs --showing all dogs that have been added missing
 @app.route('/dogs', methods=["GET", "POST"])
 def dogs():
+    # get_all_dog is a function further up in the code
     dogs = get_all_dogs()
-    if result > 0:
+    if not dogs:
         return render_template("dogs.html", dogs=dogs)
     else:
         msg = "There are no dog missing"
@@ -291,11 +334,8 @@ def dogs():
 # To display one dog
 @app.route("/dog/<string:id>/")
 def dog(id):
-    # # Create Cursor
-    cur = mysql.connection.cursor()
-    # Get one dog
-    results = cur.execute("SELECT * FROM dogs WHERE id = %s", [id])
-    dog = cur.fetchone()
+    # get_one_dog is a function further up in the code
+    dog = get_one_dog(id)
     return render_template("dog.html", dog=dog)
 
 
@@ -307,7 +347,7 @@ def add_dog():
     if request.method == 'POST' and form.validate():
         dogName = form.dogName.data
         dogAge = form.dogAge.data
-        owner = form.owner.data
+        owner = session['user']['id']
         home = form.home.data
         lastSeen = form.lastSeen.data
         comments = form.comments.data
@@ -380,7 +420,6 @@ def delete_dog(id):
     mysql.connection.commit()
     # Close connection
     cur.close()
-    flash('Dog has been deleted', "success")
     return redirect(url_for('dashboard'))
 
 
@@ -390,7 +429,8 @@ def delete_dog(id):
 def dashboard():
 
     cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM dogs")
+    result = cur.execute("SELECT * FROM dogs WHERE owner = %s",
+                         [session['user']['id']])
     dogs = cur.fetchall()
 
     if result > 0:
@@ -430,6 +470,7 @@ def signup():
 # login form
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
         username = request.form['username']
         password_submitted = request.form['password']
@@ -439,13 +480,14 @@ def login():
                              [username])
 
         if result > 0:
-            data = cur.fetchone()
-            password = data['password']
+            user = cur.fetchone()
+            password = user['password']
 
             if sha256_crypt.verify(password_submitted, password):
                 session['logged_in'] = True
                 session['username'] = username
-                session['api_key'] = data["api_key"]
+                session['api_key'] = user["api_key"]
+                session['user'] = user
 
                 flash('You are now logged in', 'success')
                 return redirect(url_for('add_dog'))
