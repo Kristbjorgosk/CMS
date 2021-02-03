@@ -14,7 +14,6 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
 
-
 dictConfig({
     'version': 1,
     'formatters': {
@@ -91,7 +90,7 @@ def is_logged_in(f):
 
 
 # Class for missing dog form
-class AddDogFrom(Form):
+class AddDogForm(Form):
     dogName = StringField('The dogs name', [validators.Length(min=1, max=200)])
     dogAge = StringField('The dogs age', [validators.Length(min=1, max=200)])
     owner = StringField('Name of the owner',
@@ -102,8 +101,8 @@ class AddDogFrom(Form):
                            [validators.Length(min=1, max=200)])
     comments = StringField('Any additional comments?',
                            [validators.Length(min=0, max=1000)])
-    area = SelectField(u'area', choices=
-                                [('101 Reykjavík', '101 Reykjavík'),
+    area = SelectField(u'area',
+                       choices=[('101 Reykjavík', '101 Reykjavík'),
                                 ('102 Reykjavík', '102 Reykjavík'),
                                 ('103 Reykjavík', '103 Reykjavík'),
                                 ('104 Reykjavík', '104 Reykjavík'),
@@ -124,7 +123,7 @@ class AddDogFrom(Form):
                                 ('210 Garðabær ', '210 Garðabær'),
                                 ('220 Hafnarfjörður', '220 Hafnarfjörður'),
                                 ('221 Hafnarfjörður', '221 Hafnarfjörður')])
-
+    image = StringField('add image', [validators.Length(min=0, max=10000)])
 
 
 class RegisterForm(Form):
@@ -169,7 +168,7 @@ def get_one_dog(id):
 
 # Function to ADD dog from the database
 def add_one_dog():
-    form = AddDogFrom(request.form)
+    form = AddDogForm(request.form)
     app.logger.info(form.validate())
     app.logger.info(request.method)
     if not form.validate():
@@ -209,7 +208,7 @@ def edit_one_dog(id):
     edit_dog = cur.fetchone()
     app.logger.info(edit_dog)
     # Get form from class above in the code
-    form = AddDogFrom(request.form)
+    form = AddDogForm(request.form)
     # Populate dog form fields
     form.dogName.data = dog['dogName']
     form.dogAge.data = dog['dogAge']
@@ -315,7 +314,7 @@ def json_delete_dog(id):
 def home():
     # get_all_dog is a function further up in the code
     dogs = get_all_dogs()
-    if not dogs:
+    if dogs:
         return render_template("index.html", dogs=dogs)
     else:
         msg = "There are no dog missing"
@@ -329,7 +328,7 @@ def home():
 def dogs():
     # get_all_dog is a function further up in the code
     dogs = get_all_dogs()
-    if not dogs:
+    if dogs:
         return render_template("dogs.html", dogs=dogs)
     else:
         msg = "There are no dog missing"
@@ -348,7 +347,7 @@ def dog(id):
 @app.route('/add-dog', methods=['GET', 'POST'])
 @is_logged_in
 def add_dog():
-    form = AddDogFrom(request.form)
+    form = AddDogForm(request.form)
     if request.method == 'POST' and form.validate():
         dogName = form.dogName.data
         dogAge = form.dogAge.data
@@ -384,14 +383,14 @@ def edit_doggy(id):
     dog = cur.fetchone()
     app.logger.info(dog)
     # Get form
-    form = AddDogFrom(request.form)
+    form = AddDogForm(request.form)
     # Populate dog form fields
-    form.dogName.data = dog['dogName']
-    form.dogAge.data = dog['dogAge']
-    form.owner.data = dog['owner']
-    form.home.data = dog['home']
-    form.lastSeen.data = dog['lastSeen']
-    form.comments.data = dog['comments']
+    form.dogName.user = dog['dogName']
+    form.dogAge.user = dog['dogAge']
+    form.owner.user = dog['owner']
+    form.home.user = dog['home']
+    form.lastSeen.user = dog['lastSeen']
+    form.comments.user = dog['comments']
 
     if request.method == 'POST' and form.validate():
         dogName = request.form['dogName']

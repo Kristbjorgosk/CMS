@@ -3,16 +3,15 @@
   <h1 class="text-center">DASHBOARD</h1>
   <h3 class="text-center"><small>{{session.username}}</small></h3>
   <a class="btn btn-warning" href="/add-dog">ADD YOUR MISSING DOG</a>
-  <a class="btn btn" href="/api-docs">USE OUR API</a>
+  <a class="btn btn-light" href="/api-docs">USE OUR API</a>
   <hr />
   <table class="table table-striped">
     <tr>
-      <th>id</th>
+      <th>ID</th>
       <th>NAME</th>
       <th>LAST SEEN</th>
       <th>STREET</th>
       <th>AREA</th>
-      <th>owner</th>
       <th>AGE</th>
       <th>COMMENTS</th>
       <th></th>
@@ -26,14 +25,11 @@
       </td>
       <td>{{dogs.lastSeen}}</td>
       <td>{{dogs.home}}</td>
-      <td>{{dogs.owner}}</td>
       <td>{{dogs.area}}</td>
       <td>{{dogs.dogAge}}</td>
       <td>{{dogs.comments}}</td>
       <td>
-        <a href="edit-dog/{{dogs.id}}" class="btn btn-default pull-right"
-          >EDIT</a
-        >
+        <a href="edit-dog/{{dogs.id}}" class="btn btn-light pull-right">EDIT</a>
       </td>
       <td>
         <form action="{{url_for('delete_dog', id=dogs.id)}}" method="post">
