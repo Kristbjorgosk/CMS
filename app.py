@@ -1,24 +1,15 @@
-<<<<<<< Updated upstream
-from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify, make_response
-=======
 import os
 from flask import Flask, render_template, request, redirect, flash, url_for, session, logging, request, jsonify
->>>>>>> Stashed changes
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, FileField, SelectField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
 import uuid
-<<<<<<< Updated upstream
-import jwt
-import datetime
-=======
 from werkzeug.utils import secure_filename
 
 UPLOADED_IMAGES_DEST = 'uploads/images'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
->>>>>>> Stashed changes
 
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
