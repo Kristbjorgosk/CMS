@@ -38,10 +38,10 @@ dictConfig({
 
 # ------------- connection to the database------------- #
 
-app.config['MYSQL_HOST'] = 'us-cdbr-east-03.cleardb.com'
-app.config['MYSQL_USER'] = 'b5aef45b6c5463'
-app.config['MYSQL_PASSWORD'] = '6bd17e5d'
-app.config['MYSQL_DB'] = 'heroku_5ac0bb6b985dc58'
+app.config['MYSQL_HOST'] = 'eu-cdbr-west-03.cleardb.net'
+app.config['MYSQL_USER'] = 'b8aa06837e59c3'
+app.config['MYSQL_PASSWORD'] = '9557daec'
+app.config['MYSQL_DB'] = 'heroku_bf4e9c684327ed7'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
