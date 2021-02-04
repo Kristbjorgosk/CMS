@@ -54,6 +54,7 @@ def api_key_required(f):
     def decorated(*args, **kwargs):
 
         app.logger.info(request.form)
+        # check if there is an api key
         if "api_key" not in request.form:
             return jsonify({'message': 'Api key is missing!'}), 403
 
@@ -219,6 +220,8 @@ def delete_one_dog(id):
 def json_all():
     # dogs is coming from the function
     dogs = get_all_dogs()
+    app.logger.info(dogs)
+    app.logger.info(type(dogs))
     return jsonify(dogs)
 
 
