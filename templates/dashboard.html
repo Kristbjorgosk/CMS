@@ -7,7 +7,6 @@
   <hr />
   <table class="table table-striped">
     <tr>
-      <th>ID</th>
       <th>NAME</th>
       <th>LAST SEEN</th>
       <th>STREET</th>
@@ -19,7 +18,6 @@
     </tr>
     {% for dogs in dogs %}
     <tr>
-      <td>{{dogs.id}}</td>
       <td>
         <a href="dog/{{dogs.id}}">{{dogs.dogName}}</a>
       </td>
