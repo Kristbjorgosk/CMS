@@ -345,17 +345,15 @@ def edit_doggy(id):
     # Get form
     form = AddDogForm(request.form)
     # Populate dog form fields
-    form.dogName.user = dog['dogName']
-    form.dogAge.user = dog['dogAge']
-    form.owner.user = dog['owner']
-    form.home.user = dog['home']
-    form.lastSeen.user = dog['lastSeen']
-    form.comments.user = dog['comments']
+    form.dogName.data = dog['dogName']
+    form.dogAge.data = dog['dogAge']
+    form.home.data = dog['home']
+    form.lastSeen.data = dog['lastSeen']
+    form.comments.data = dog['comments']
 
     if request.method == 'POST' and form.validate():
         dogName = request.form['dogName']
         dogAge = request.form['dogAge']
-        owner = request.form['owner']
         home = request.form['home']
         lastSeen = request.form['lastSeen']
         comments = request.form['comments']
@@ -363,8 +361,8 @@ def edit_doggy(id):
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
-            "UPDATE dogs SET dogName=%s, dogAge=%s, owner=%s, home=%s, lastSeen=%s, comments=%s WHERE id = %s",
-            (dogName, dogAge, owner, home, lastSeen, comments, id))
+            "UPDATE dogs SET dogName=%s, dogAge=%s, home=%s, lastSeen=%s, comments=%s WHERE id = %s",
+            (dogName, dogAge, home, lastSeen, comments, id))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
