@@ -8,13 +8,34 @@ from passlib.hash import sha256_crypt
 from logging.config import dictConfig
 from functools import wraps
 import uuid
+import boto3
+import awscli
 from werkzeug.utils import secure_filename
 
 UPLOADED_IMAGES_DEST = 'uploads/images'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
+# s3 = boto3.client(
+#     's3',
+#     aws_access_key_id='AKIAJZCACMKWAJQ3YVEQ',
+#     aws_secret_access_key='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')
+# BUCKET_NAME = 'dog-pics'
+
 app = Flask(__name__)
 app.secret_key = 'leyndo123456'
+
+
+@app.route('/submit', methods=['post'])
+def upload():
+    if request.method == 'POST':
+        img = request.files['file']
+        if img:
+            filename = secure_filename(img.filename)
+            img.save(filename)
+            s3.upload_file(Bucket='dog-pics', Filename=filename, Key=filename)
+
+    return render_template("dashboard.html")
+
 
 dictConfig({
     'version': 1,
@@ -45,7 +66,7 @@ app.config['MYSQL_DB'] = 'heroku_bf4e9c684327ed7'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
-# ------------- Decorators functions ------------- #
+# ------------- Decorators ------------- #
 
 
 # Check the api key and if it is in the database

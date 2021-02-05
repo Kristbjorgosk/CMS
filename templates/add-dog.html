@@ -23,13 +23,14 @@
       {{ render_field(form.comments, class_="form-control", id="editor") }}
     </div>
     <form action="http://localhost:5000/add-dog" enctype="multipart/form-data" method="POST"> 
-      <input type="file" name="file" />
+      <input type="file" name="file" value="file" />
       
    </form>
     <p>
       <input
         class="btn btn-warning btn-block mb-4"
         type="submit"
+        name="upload"
         value="Submit"
       />
     </p>
