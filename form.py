@@ -37,7 +37,7 @@ class AddDogForm(Form):
                                 ('210 Garðabær ', '210 Garðabær'),
                                 ('220 Hafnarfjörður', '220 Hafnarfjörður'),
                                 ('221 Hafnarfjörður', '221 Hafnarfjörður')])
-    image = StringField('add image', [validators.Length(min=0, max=10000)])
+    img = StringField('add image', [validators.Length(min=0, max=10000)])
 
 
 class RegisterForm(Form):

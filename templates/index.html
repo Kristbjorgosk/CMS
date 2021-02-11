@@ -3,14 +3,15 @@
 {% extends 'layout.html' %} {% block body %}
 <div class="container" style="max-width: 800px; margin-top: 5rem">
   <div class="jumbotron text-center">
-    <h3 style="margin-bottom: 2rem">Dogs that are currently lost</h3>
+    <h3 style="margin-bottom: 2rem">Missing dogs!</h3>
     <div class="row row-cols-1 row-cols-md-3 g-4">
       {% for dog in dogs %}
       <div class="col">
         <div class="card h-100">
           <div class="card-body">
-            <a href="dog/{{dog.id}}">
-              <h5 class="card-title">{{dog.dogName}}</h5></a>
+            <a href="dog/{{dog.id}}" style="color: rgb(216, 116, 2)">
+              <h5 class="card-title">{{dog.dogName}}</h5></a
+            >
             <p class="card-text">Last seen at {{dog.lastSeen}}</p>
           </div>
         </div>
@@ -18,8 +19,10 @@
       {% endfor %}
     </div>
     {% if session.logged_in == NULL %}
-    <p class="lead" style="margin-top: 2rem">
-      Has your dog run away from home? Sign up and log in to report it as missing!</p>
+    <p class="lead" style="margin-top: 2rem; color: rgb(29, 29, 29)">
+      Has your dog run away from home? Sign up and log in to report it as
+      missing!
+    </p>
     {% endif %}
   </div>
 </div>

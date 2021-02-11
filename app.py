@@ -11,31 +11,32 @@ import uuid
 import boto3
 import awscli
 from werkzeug.utils import secure_filename
+import socket
+import ssl
 
-UPLOADED_IMAGES_DEST = 'uploads/images'
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+app = Flask(__name__, instance_relative_config=True)
+app.secret_key = 'dev'
 
-# s3 = boto3.client(
-#     's3',
-#     aws_access_key_id='AKIAJZCACMKWAJQ3YVEQ',
-#     aws_secret_access_key='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')
-# BUCKET_NAME = 'dog-pics'
+# ------------- Socket with default context and IPv4/IPv6 dual stack ------------- #
 
-app = Flask(__name__)
-app.secret_key = 'leyndo123456'
+hostname = 'www.python.org'
+context = ssl.create_default_context()
 
+with socket.create_connection((hostname, 443)) as sock:
+    with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+        print(ssock.version())
 
-@app.route('/submit', methods=['post'])
-def upload():
-    if request.method == 'POST':
-        img = request.files['file']
-        if img:
-            filename = secure_filename(img.filename)
-            img.save(filename)
-            s3.upload_file(Bucket='dog-pics', Filename=filename, Key=filename)
+# ------------- AWS S3 bucket connection ------------- #
 
-    return render_template("dashboard.html")
+bucket_name = "dog-myndir"
+S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format('/dog-myndir')
 
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id='AKIA4RLO3PKSIU2APZHD',
+    aws_secret_access_key='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',
+    region_name='eu-west-1')
+bucket_resource = s3
 
 dictConfig({
     'version': 1,
@@ -153,7 +154,7 @@ def add_one_dog():
     if not form.validate():
         app.logger.info(form.errors.items)
         return False
-    if request.method == 'POST' and form.validate():
+    if request.method == 'PUT' and form.validate():
         dogName = form.dogName.data
         dogAge = form.dogAge.data
         owner = form.owner.data
@@ -189,33 +190,34 @@ def edit_one_dog(id):
     # Get form from class above in the code
     form = AddDogForm(request.form)
     # Populate dog form fields
-    form.dogName.data = dog['dogName']
-    form.dogAge.data = dog['dogAge']
-    form.owner.data = dog['owner']
-    form.home.data = dog['home']
-    form.lastSeen.data = dog['lastSeen']
-    form.comments.data = dog['comments']
+    form.dogName.data = ['dogName']
+    form.dogAge.data = ['dogAge']
+    form.owner.data = ['owner']
+    form.home.data = ['home']
+    form.lastSeen.data = ['lastSeen']
+    form.area.data = ['area']
+    form.comments.data = ['comments']
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'PUT' and form.validate():
         dogName = request.form['dogName']
         dogAge = request.form['dogAge']
         owner = request.form['owner']
         home = request.form['home']
         lastSeen = request.form['lastSeen']
+        area = request.form['area']
         comments = request.form['comments']
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
-            "UPDATE dogs SET dogName=%s, dogAge=%s, owner=%s, home=%s, lastSeen=%s, comments=%s WHERE id = %s",
-            (dogName, dogAge, owner, home, lastSeen, comments, id))
-
+            "UPDATE dogs SET dogName=%s, dogAge=%s, owner=%s, home=%s, lastSeen=%s, area=%s, comments=%s WHERE id = %s",
+            (dogName, dogAge, owner, home, lastSeen, area, comments, id))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
         cur.close()
 
-    return edit_dog()
+    return edit_dog
 
 
 # Function to DELETE one dog from the database
@@ -237,42 +239,47 @@ def delete_one_dog(id):
 
 # API for ALL dogs
 @app.route("/api/all", methods=["GET", "POST"])
-@api_key_required
 def json_all():
     # dogs is coming from the function
     dogs = get_all_dogs()
     app.logger.info(dogs)
     app.logger.info(type(dogs))
+    if not dogs:
+        return "No dogs found", 500
     return jsonify(dogs)
 
 
 # API to GET ONE dog
 @app.route("/api/dog/<string:id>/", methods=["GET"])
-@api_key_required
 def json_one_dog(id):
     # one_dog is coming from the function
     one_dog = get_one_dog(id)
+    if not one_dog:
+        return "No dog found", 500
     return jsonify(one_dog)
 
 
 # API to ADD ONE dog
-@app.route("/api/dog/add/", methods=["POST"])
+@app.route("/api/dog/add/", methods=["PUT"])
 @api_key_required
 def json_add_dog():
     # one_dog is coming from the function
     added_dog = add_one_dog()
     if not added_dog:
-        return "error", 500
+        return "No dog found", 500
     msg = "Dog has been added"
     return jsonify(added_dog, msg)
 
 
 # API to get EDIT one dog
-@app.route("/api/dog/edit/<string:id>/", methods=["PUT", "POST"])
+@app.route("/api/dog/edit/<string:id>/", methods=["PUT"])
 @api_key_required
 def json_edit_dog(id):
     # edit_dog is coming from the function
     edit_dog = edit_one_dog(id)
+    if not edit_dog:
+        return "No dog found", 500
+    msg = "Dog info has been updated"
     return jsonify(edit_dog)
 
 
@@ -282,6 +289,8 @@ def json_edit_dog(id):
 def json_delete_dog(id):
     # delete_dog is coming from the decorator
     delete_dog = delete_one_dog(id)
+    if not delete_dog:
+        return "No dog found", 500
     # Message that will show if it was success
     msg = "Dog has been deleted"
     return jsonify(delete_dog, msg)
@@ -321,11 +330,13 @@ def dogs():
 def dog(id):
     # get_one_dog is a function further up in the code
     dog = get_one_dog(id)
+    if not dog:
+        return "No dog found", 500
     return render_template("dog.html", dog=dog)
 
 
 # Add missing dog form --the data will go to MySql
-@app.route('/add-dog', methods=['GET', 'POST'])
+@app.route('/add-dog', methods=['PUT'])
 @is_logged_in
 def add_dog():
     form = AddDogForm(request.form)
@@ -337,27 +348,32 @@ def add_dog():
         lastSeen = form.lastSeen.data
         comments = form.comments.data
         area = form.area.data
-        image = form.image.data
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-
+        img = request.files['img']
+        filename = ''
+        if img:
+            filename = secure_filename(img.filename)
+            img.save(filename)
+            bucket_resource.upload_file(Bucket=bucket_name,
+                                        Filename=filename,
+                                        Key=filename)
         # # Create Cursor
         cur = mysql.connection.cursor()
         # # Execute
         cur.execute(
-            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area, image) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)',
-            (dogName, dogAge, owner, home, lastSeen, comments, area, image))
+            'INSERT INTO dogs(dogName, dogAge, owner, home, lastSeen, comments, area, img) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)',
+            (dogName, dogAge, owner, home, lastSeen, comments, area, img))
         # # Commit to DB
         mysql.connection.commit()
         # # Close connection
         cur.close()
+
         flash('Missing dog added', "success")
         return redirect(url_for('dashboard'))
     return render_template('add-dog.html', form=form)
 
 
 # Edit missing dog form
-@app.route('/edit-dog/<string:id>', methods=['GET', 'POST'])
+@app.route('/edit-dog/<string:id>', methods=['PUT'])
 @is_logged_in
 def edit_doggy(id):
     # Create cursor
@@ -397,7 +413,7 @@ def edit_doggy(id):
 
 
 # Delete missing dog
-@app.route("/delete-dog/<string:id>", methods=["POST"])
+@app.route("/delete-dog/<string:id>", methods=["DELETE"])
 @is_logged_in
 def delete_dog(id):
     # Create cursor
@@ -415,7 +431,6 @@ def delete_dog(id):
 @app.route('/dashboard')
 @is_logged_in
 def dashboard():
-
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM dogs WHERE owner = %s",
                          [session['user']['id']])
@@ -423,11 +438,9 @@ def dashboard():
 
     if result > 0:
         return render_template('dashboard.html', dogs=dogs)
-
     else:
         msg = 'Not dogs found :('
         return render_template('dashboard.html', msg=msg)
-
     cur.close()
 
 
@@ -502,8 +515,8 @@ def login():
 @is_logged_in
 def logout():
     session.clear()
-    flash('You are now logged out, doggy', 'success')
-    return redirect(url_for('login'))
+    flash('You are now logged out', 'success')
+    return redirect(url_for('dogs'))
 
 
 if __name__ == "__main__":

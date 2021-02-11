@@ -1,7 +1,9 @@
 {% extends 'layout.html' %} {% block body%}
 <div class="container" style="max-width: 1000px; margin-top: 5rem">
-  <h1 class="text-center">DASHBOARD</h1>
-  <h3 class="text-center"><small>{{session.username}}</small></h3>
+  <h1 class="text-center" style="margin-bottom: 5rem">
+    Hello {{session.username}}
+  </h1>
+
   <a class="btn btn-warning" href="/add-dog">ADD YOUR MISSING DOG</a>
   <a class="btn btn-light" href="/api-docs">USE OUR API</a>
   <hr />

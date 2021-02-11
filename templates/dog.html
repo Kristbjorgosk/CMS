@@ -2,18 +2,28 @@
 
 {% extends 'layout.html' %} {% block body %}
 <div class="container" style="max-width: 600px; margin-top: 5rem">
-  <div class="jumbotron text-left">
+  <div class="jumbotron text-center">
     <!-- showing one dog that the user has just added -->
+
     <h1>{{dog.dogName}}</h1>
-    <ul>
-      <li><strong>Place where it was last seen:</strong> {{dog.lastSeen}}</li>
-      <li><strong>Address of its home:</strong> {{dog.home}}</li>
+    <hr />
+    <ul style="list-style: none">
+      <li>
+        <strong>Place where the dog was last seen:</strong> {{dog.lastSeen}}
+      </li>
+      <li><strong>Home address:</strong> {{dog.home}}</li>
       <li><strong>Age:</strong> {{dog.dogAge}}</li>
+      <li><strong>Additional information:</strong> {{dog.comments}}</li>
     </ul>
 
+    <div>{{dog.img}}</div>
+
     <hr />
-    <div><strong>Additional information:</strong> {{dog.comments}}</div>
-    <div>{{dog.image}}</div>
+    {% if session.logged_in %}
+    <a class="btn btn-light" href="/dashboard">GO BACK</a>
+    {% else %}
+    <a class="btn btn-light" href="/dogs">GO BACK</a>
+    {% endif %}
   </div>
 </div>
 

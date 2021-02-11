@@ -1,31 +1,31 @@
-{% extends 'layout.html'%}
-
-{% block body %}
-    {% from "includes/_formhelpers.html" import render_field %}
-    <div class="container" style="max-width: 600px; margin-top: 5rem">
-        <h1 class="text-center">SIGNUP</h1>
-        <form method="POST" action="">
-            <div class="row">
-                <div class="col">
-                    <div class="mb-4">
-                        {{render_field(form.name, class_="form-control")}}
-                    </div>
-                    <div class="mb-4">
-                        {{render_field(form.email, class_="form-control")}}
-                    </div>
-                    <div class="mb-4">
-                        {{render_field(form.username, class_="form-control")}}
-                    </div>
-                    <div class="mb-4">
-                        {{render_field(form.password, class_="form-control")}}
-                    </div>
-                    <div class="mb-4">
-                        {{render_field(form.confirm, class_="form-control")}}
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block mb-4">SUBMIT</button>
-                </div>
-            </div>
-        </form>
+{% extends 'layout.html'%} {% block body %} {% from "includes/_formhelpers.html"
+import render_field %}
+<div class="container" style="max-width: 600px; margin-top: 5rem">
+  <h1 class="text-center">SIGNUP</h1>
+  <form method="POST" action="">
+    <div class="row">
+      <div class="col">
+        <div class="mb-4">
+          {{render_field(form.name, class_="form-control")}}
+        </div>
+        <div class="mb-4">
+          {{render_field(form.email, class_="form-control")}}
+        </div>
+        <div class="mb-4">
+          {{render_field(form.username, class_="form-control")}}
+        </div>
+        <div class="mb-4">
+          {{render_field(form.password, class_="form-control")}}
+        </div>
+        <div class="mb-4">
+          {{render_field(form.confirm, class_="form-control")}}
+        </div>
+        <button type="submit" class="btn btn-warning btn-block mb-4">
+          SUBMIT
+        </button>
+      </div>
     </div>
+  </form>
+</div>
 
 {% endblock %}

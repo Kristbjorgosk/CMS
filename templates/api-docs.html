@@ -3,38 +3,42 @@
 {% extends 'layout.html' %} {% block body %}
 <div class="container" style="max-width: 600px; margin-top: 5rem">
   <div class="jumbotron text-left">
-    <div class="container">
-      Here is your API key:<strong> {{session.api_key}} </strong>
+    <div class="container" style="margin-bottom: 3rem">
+      <h1>API endpoints</h1>
+      <p>
+        You can try these enpoint out for example in
+        <a href="https://www.postman.com">Postman</a>. </br> In the <strong> key </strong> field write
+        "api_key" and in the <strong> value </strong> field paste in your api key.
+      </p>
     </div>
-    <h1>How to use our API</h1>
-    <p>API endpoints</p>
-    <ul>
-      <li>
-        <strong> To display all the dogs </strong>->
-        <a href="/api/all"> /api/all </a>
-      </li>
-      <li>
-        <strong>
-          To display one spesific dog pass in his id number instead of "id" </strong
-        >m-> /api/dog/"id"/
-      </li>
-      <li>
-        <strong> To add a new missing dog </strong> -> /api/add/dog/ and fill
-        out all the variables
-      </li>
-      <li>
-        <strong>
-          To edit a dog info that has already been added pass in his id number
-          instead of "id"
-        </strong>
-        -> /api/dog/edit/"id"/ and change the value for the variable you want to
-        edit
-      </li>
-      <li>
-        <strong> To delete a dog pass in his id number instead of "id" </strong
-        >-> /api/dog/delete/"id"
-      </li>
-    </ul>
+
+    <div class="card" style="width: 30rem">
+      <div class="card-header">
+        Your API key:<strong> {{session.api_key}} </strong>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          GET all: <strong> /api/all/ </strong> method = <strong>GET</strong>
+        </li>
+        <li class="list-group-item">
+          GET one: <strong> /api/dog/id/ </strong> method = <strong>GET</strong>
+        </li>
+        <li class="list-group-item">
+          ADD a dog: <strong> /api/dog/add/ </strong> method =
+          <strong>POST</strong>
+        </li>
+        <li class="list-group-item">
+          Edit a dog: <strong> /api/dog/edit/id/</strong> method =
+          <strong>PUT</strong>
+        </li>
+        <li class="list-group-item">
+          Delete a dog: <strong> /api/dog/delete/id/ </strong> method =
+          <strong>DELETE</strong>
+        </li>
+      </ul>
+    </div>
+    <p style="margin-top: 2rem;"> Where it stands "id" you write the id of the dog you want to get, edit or delete
+  </br> To add a new dog you will have to fill out in all the values </p>
   </div>
 </div>
 
